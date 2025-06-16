@@ -1,11 +1,31 @@
-import { Text, View, StyleSheet, TextInput, TouchableOpacity, Image } from 'react-native';
-import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import logoImage from '../../assets/images/logo.png';
+import { registerApi } from '../services/auth/registerApi';
 
 const RegisterScreen = () => {
   const router = useRouter();
+
+  const [form, setForm] = useState({
+    email: '',
+    name: '',
+    password: '',
+    confirmPassword: '',
+    phoneNumber: ''
+  });
+
+  const handleRegister = async () => {
+    try {
+      await registerApi(form);
+      Alert.alert("Thành công", "Đăng ký thành công! Vui lòng đăng nhập.");
+      router.push('/auth/login');
+    } catch (error) {
+      Alert.alert("Lỗi đăng ký", error.message);
+    }
+  };
 
   return (
     <LinearGradient colors={['#007bff', '#0056b3']} style={styles.container}>
@@ -14,7 +34,6 @@ const RegisterScreen = () => {
         <Image source={logoImage} style={styles.logo} />
       </View>
 
-      {/* Title */}
       <Text style={styles.title}>Đăng ký tài khoản</Text>
 
       {/* Email Input */}
@@ -24,13 +43,17 @@ const RegisterScreen = () => {
         placeholderTextColor="#aaa"
         keyboardType="email-address"
         autoCapitalize="none"
+        value={form.email}
+        onChangeText={(text) => setForm({ ...form, email: text })}
       />
 
       {/* Name Input */}
       <TextInput
         style={styles.input}
-        placeholder="Họ và tên"
+        placeholder="name.."
         placeholderTextColor="#aaa"
+        value={form.name}
+        onChangeText={(text) => setForm({ ...form, name: text })}
       />
 
       {/* Password Input */}
@@ -39,18 +62,32 @@ const RegisterScreen = () => {
         placeholder="Mật khẩu"
         placeholderTextColor="#aaa"
         secureTextEntry
+        value={form.password}
+        onChangeText={(text) => setForm({ ...form, password: text })}
       />
 
-      {/* Phone Input */}
+      {/* Confirm Password Input */}
+      <TextInput
+        style={styles.input}
+        placeholder="Nhập lại mật khẩu"
+        placeholderTextColor="#aaa"
+        secureTextEntry
+        value={form.confirmPassword}
+        onChangeText={(text) => setForm({ ...form, confirmPassword: text })}
+      />
+
+      {/* Phone Number Input */}
       <TextInput
         style={styles.input}
         placeholder="Số điện thoại"
         placeholderTextColor="#aaa"
         keyboardType="phone-pad"
+        value={form.phoneNumber}
+        onChangeText={(text) => setForm({ ...form, phoneNumber: text })}
       />
 
       {/* Register Button */}
-      <TouchableOpacity style={styles.registerButton}>
+      <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
         <Text style={styles.registerButtonText}>Đăng ký</Text>
       </TouchableOpacity>
 
