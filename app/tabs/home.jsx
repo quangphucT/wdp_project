@@ -1,271 +1,236 @@
-// Không đổi phần import
-import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import logoImage from '../../assets/images/logo.png'
+import {
+  Entypo,
+  FontAwesome5,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 const HomeScreen = () => {
   const router = useRouter();
-  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
 
-  const services = [
-    'Điều trị HIV',
-    'Xét nghiệm các bệnh xã hội',
-    'Xét nghiệm HIV',
+  const features = [
+    {
+      title: "Lịch uống thuốc",
+      desc: "Theo dõi thuốc",
+      icon: <MaterialCommunityIcons name="pill" size={24} color="#1e88e5" />,
+      bgColor: "#e3f2fd",
+    },
+    {
+      title: "Hồ sơ bệnh án",
+      desc: "Xem lịch sử",
+      icon: <FontAwesome5 name="file-medical-alt" size={24} color="#9c27b0" />,
+      bgColor: "#f3e5f5",
+    },
+    {
+      title: "Cập nhật hồ sơ",
+      desc: "Thông tin cá nhân",
+      icon: <FontAwesome5 name="user-edit" size={24} color="#43a047" />,
+      bgColor: "#e8f5e9",
+    },
+    {
+      title: "Tin tức",
+      desc: "Cập nhật mới",
+      icon: (
+        <MaterialCommunityIcons
+          name="newspaper-variant-outline"
+          size={24}
+          color="#ff9800"
+        />
+      ),
+      bgColor: "#fff3e0",
+    },
+    {
+      title: "Meeting Record",
+      desc: "Tư vấn video cá nhân",
+      icon: <Entypo name="video" size={24} color="#00acc1" />,
+      bgColor: "#e0f7fa",
+    },
+    {
+      title: "Quản lí cuộc hẹn",
+      desc: "Xem & nhắc nhở",
+      icon: (
+        <MaterialCommunityIcons
+          name="calendar-clock"
+          size={24}
+          color="#d81b60"
+        />
+      ),
+      bgColor: "#fce4ec",
+    },
   ];
 
   return (
     <ScrollView style={styles.container}>
-      {/* Header */}
-      <LinearGradient
-        colors={['#1e88e5', '#1565c0']}
-        style={styles.header}
-      >
-        <View style={styles.logoContainer}>
-          <Image
-            source={logoImage}
-            style={styles.logo}
-            resizeMode="contain"
-          />
+      {/* Greeting */}
+      <View style={styles.header}>
+        <View style={styles.avatarCircle}>
+          <Text style={styles.avatarLetter}>M</Text>
         </View>
-        <TouchableOpacity
-          style={styles.loginButton}
-          onPress={() => router.push("/auth/login")}
-        >
-          <Text style={styles.loginText}>Đăng nhập</Text>
-        </TouchableOpacity>
-      </LinearGradient>
+        <View>
+          <Text style={styles.greetingText}>Xin chào, Mai</Text>
+          <Text style={styles.subGreeting}>Chúc bạn một ngày tốt lành</Text>
+        </View>
+      </View>
 
-      {/* Navigation Menu */}
-      <View style={styles.navMenu}>
-        {['DỊCH VỤ', 'XÉT NGHIỆM HIV', 'TIN TỨC'].map((item, index) => (
-          <View key={index} style={styles.navItemContainer}>
-            <TouchableOpacity
-              style={styles.navItem}
-              onPress={item === 'DỊCH VỤ' ? () => setIsDropdownVisible(!isDropdownVisible) : null}
-            >
-              <Text style={styles.navText}>{item}</Text>
-            </TouchableOpacity>
-            {item === 'DỊCH VỤ' && isDropdownVisible && (
-              <View style={styles.dropdown}>
-                {services.map((service, idx) => (
-                  <TouchableOpacity key={idx} style={styles.dropdownItem}>
-                    <Text style={styles.dropdownText}>{service}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
+      {/* Features Grid */}
+      <View style={styles.gridContainer}>
+        {features.map((item, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[styles.card, { backgroundColor: item.bgColor }]}
+            onPress={() => {
+              if (item.title === "Hồ sơ bệnh án") {
+               router.push('/user/record_patient');
+
+              }
+              // Có thể thêm điều kiện khác ở đây cho các tính năng khác
+            }}
+          >
+            {item.icon}
+            <Text style={styles.cardTitle}>{item.title}</Text>
+            <Text style={styles.cardDesc}>{item.desc}</Text>
+          </TouchableOpacity>
         ))}
       </View>
 
-      {/* Banner */}
-      <LinearGradient
-        colors={['#64b5f6', '#1e88e5']}
-        style={styles.banner}
-      >
-        <Text style={styles.bannerText}>Khám phá dịch vụ xét nghiệm HIV an toàn và nhanh chóng!</Text>
-        <TouchableOpacity style={styles.bannerButton}>
-          <Text style={styles.bannerButtonText}>Tìm hiểu thêm</Text>
-        </TouchableOpacity>
-      </LinearGradient>
-
-      {/* Dịch vụ Section */}
+      {/* Today */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Các dịch vụ</Text>
-        <View style={styles.serviceCard}>
-          <Text style={styles.serviceText}>Dịch vụ xét nghiệm HIV</Text>
-          <Text style={styles.serviceDesc}>Nhanh chóng, chính xác, bảo mật.</Text>
+        <Text style={styles.sectionTitle}>Hôm nay</Text>
+        <View style={styles.todayItem}>
+          <Text style={styles.todayTitle}>💊 Thuốc cần uống</Text>
+          <Text style={styles.todayDesc}>3 loại thuốc vào buổi sáng</Text>
         </View>
-        <View style={styles.serviceCard}>
-          <Text style={styles.serviceText}>Tư vấn sức khỏe</Text>
-          <Text style={styles.serviceDesc}>Hỗ trợ tận tâm, chuyên nghiệp.</Text>
+        <View style={styles.todayItem}>
+          <Text style={styles.todayTitle}>📅 Lịch tái khám</Text>
+          <Text style={styles.todayDesc}>15:00 - Bác sĩ Nguyễn Văn A</Text>
         </View>
       </View>
 
-      {/* Blog Section */}
+      {/* News */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Blog</Text>
-        <View style={styles.blogCard}>
-          <Text style={styles.blogText}>Hiểu biết về HIV</Text>
-          <Text style={styles.blogDesc}>Thông tin quan trọng bạn cần biết.</Text>
-        </View>
-        <View style={styles.blogCard}>
-          <Text style={styles.blogText}>Sống tích cực với HIV</Text>
-          <Text style={styles.blogDesc}>Hành trình vượt qua khó khăn.</Text>
+        <Text style={styles.sectionTitle}>Tin tức mới nhất</Text>
+        <View style={styles.newsCard}>
+          <View style={styles.newsImageMock} />
+          <View>
+            <Text style={styles.newsTitle}>Cách phòng ngừa bệnh mùa hè</Text>
+            <Text style={styles.newsDesc}>Các biện pháp bảo vệ sức khỏe</Text>
+          </View>
         </View>
       </View>
-
-      {/* Footer */}
-      <LinearGradient
-        colors={['#1e88e5', '#1565c0']}
-        style={styles.footer}
-      >
-        <Text style={styles.footerText}>© 2025 Dịch vụ xét nghiệm HIV</Text>
-        <Text style={styles.footerText}>Liên hệ: support@hivtest.com</Text>
-      </LinearGradient>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: "#f5f7fa",
     flex: 1,
-    backgroundColor: '#f0f4f8',
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 15,
-    paddingTop: 40,
-    paddingBottom: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
   },
-  logoContainer: {
-    width: 180,
-    height: 50,
+  avatarCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#1e88e5",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
   },
-  logo: {
-    width: '100%',
-    height: '100%',
-  },
-  loginButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: '#fff',
-    borderRadius: 25,
-  },
-  loginText: {
-    color: '#1e88e5',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  navMenu: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#dfe3e8',
-    paddingVertical: 12,
-  },
-  navItemContainer: {
-    position: 'relative',
-  },
-  navItem: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-  },
-  navText: {
-    color: '#1e88e5',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  dropdown: {
-    position: 'absolute',
-    top: 38,
-    left: 0,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    elevation: 5,
-    zIndex: 10,
-    width: 180,
-  },
-  dropdownItem: {
-    padding: 12,
-    borderBottomColor: '#eee',
-    borderBottomWidth: 1,
-  },
-  dropdownText: {
-    fontSize: 14,
-    color: '#333',
-  },
-  banner: {
-    height: 180,
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    margin: 16,
-    padding: 20,
-  },
-  bannerText: {
-    color: '#fff',
+  avatarLetter: {
+    color: "#fff",
     fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 15,
+    fontWeight: "bold",
   },
-  bannerButton: {
-    backgroundColor: '#fff',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 25,
+  greetingText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#222",
   },
-  bannerButtonText: {
-    color: '#1e88e5',
-    fontWeight: 'bold',
+  subGreeting: {
+    fontSize: 13,
+    color: "#666",
+  },
+  gridContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    paddingHorizontal: 12,
+    marginTop: 10,
+  },
+  card: {
+    width: "47%",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  cardTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#111",
+    marginTop: 8,
+  },
+  cardDesc: {
+    fontSize: 12,
+    color: "#666",
   },
   section: {
-    backgroundColor: '#fff',
-    marginHorizontal: 16,
-    marginBottom: 20,
+    backgroundColor: "#fff",
+    margin: 12,
     borderRadius: 12,
-    padding: 20,
-    shadowColor: '#000',
+    padding: 16,
+    shadowColor: "#000",
     shadowOpacity: 0.05,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
     elevation: 3,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1e88e5',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  serviceCard: {
-    backgroundColor: '#e3f2fd',
-    padding: 15,
-    borderRadius: 10,
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#1e88e5",
     marginBottom: 12,
   },
-  serviceText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1e3a8a',
+  todayItem: {
+    marginBottom: 10,
   },
-  serviceDesc: {
+  todayTitle: {
+    fontWeight: "600",
     fontSize: 14,
-    color: '#4b5563',
   },
-  blogCard: {
-    backgroundColor: '#e3f2fd',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 12,
+  todayDesc: {
+    fontSize: 13,
+    color: "#555",
   },
-  blogText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1e3a8a',
+  newsCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
   },
-  blogDesc: {
+  newsImageMock: {
+    width: 80,
+    height: 60,
+    borderRadius: 8,
+    backgroundColor: "#ccc",
+    marginRight: 10,
+  },
+  newsTitle: {
     fontSize: 14,
-    color: '#4b5563',
+    fontWeight: "600",
+    color: "#222",
   },
-  footer: {
-    padding: 20,
-    paddingBottom: 40,
-    alignItems: 'center',
-  },
-  footerText: {
-    color: '#fff',
-    fontSize: 14,
-    marginVertical: 5,
+  newsDesc: {
+    fontSize: 13,
+    color: "#666",
   },
 });
 
