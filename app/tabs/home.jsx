@@ -4,6 +4,8 @@ import {
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import * as SecureStore from 'expo-secure-store';
+import { useEffect, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -11,9 +13,31 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
+import { logoutApi } from "../services/auth/logoutApi";
 const HomeScreen = () => {
   const router = useRouter();
+const [isAuthenticated, setIsAuthenticated] = useState(null); 
+ useEffect(() => {
+    const checkToken = async () => {
+      const token = await SecureStore.getItemAsync("accessToken");
+      if (!token) {
+        router.replace("/auth/login"); // đá về trang login nếu chưa có token
+      } else {
+        setIsAuthenticated(true); // cho phép hiển thị màn hình nếu có token
+      }
+    };
+
+    checkToken();
+  }, []);
+
+  if (isAuthenticated === null) {
+    // Đang kiểm tra token
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text>Đang kiểm tra đăng nhập...</Text>
+      </View>
+    );
+  }
 
   const features = [
     {
@@ -65,19 +89,37 @@ const HomeScreen = () => {
       bgColor: "#fce4ec",
     },
   ];
+  const handleLogout = async() =>{
+    try {
+const refreshToken = await SecureStore.getItemAsync('refreshToken');
+console.log("RefreshToken:", refreshToken)
+       await logoutApi({
+           refreshToken: refreshToken
+})
+      await SecureStore.deleteItemAsync('accessToken');
+           await SecureStore.deleteItemAsync('refreshToken');
+           router.push('/auth/login');
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   return (
     <ScrollView style={styles.container}>
       {/* Greeting */}
       <View style={styles.header}>
-        <View style={styles.avatarCircle}>
-          <Text style={styles.avatarLetter}>M</Text>
-        </View>
-        <View>
-          <Text style={styles.greetingText}>Xin chào, Mai</Text>
-          <Text style={styles.subGreeting}>Chúc bạn một ngày tốt lành</Text>
-        </View>
-      </View>
+  <View style={styles.avatarCircle}>
+    <Text style={styles.avatarLetter}>M</Text>
+  </View>
+  <View style={{ flex: 1 }}>
+    <Text style={styles.greetingText}>Xin chào, Mai</Text>
+    <Text style={styles.subGreeting}>Chúc bạn một ngày tốt lành</Text>
+  </View>
+  <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
+    <Text style={styles.logoutText}>Đăng xuất</Text>
+  </TouchableOpacity>
+</View>
+
 
       {/* Features Grid */}
       <View style={styles.gridContainer}>
@@ -89,6 +131,8 @@ const HomeScreen = () => {
               if (item.title === "Hồ sơ bệnh án") {
                router.push('/user/record_patient');
 
+              }else if(item.title === "Tin tức"){
+                  router.push('/blogs/blog');
               }
               // Có thể thêm điều kiện khác ở đây cho các tính năng khác
             }}
