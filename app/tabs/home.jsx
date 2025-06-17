@@ -112,7 +112,7 @@ console.log("RefreshToken:", refreshToken)
     <Text style={styles.avatarLetter}>M</Text>
   </View>
   <View style={{ flex: 1 }}>
-    <Text style={styles.greetingText}>Xin chào, Mai</Text>
+    <Text  style={styles.greetingText}>Xin chào, Mai</Text>
     <Text style={styles.subGreeting}>Chúc bạn một ngày tốt lành</Text>
   </View>
   <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
