@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
-import blogApi from '../services/blogs/getAllBlogsApi';
+import blogApi from '../../services/blogs/getAllBlogsApi';
+
 
 const BlogScreen = () => {
   const [blogs, setBlogs] = useState([]);
@@ -36,7 +37,6 @@ const BlogScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>📰 Latest Blogs</Text>
       <FlatList
         data={blogs}
         keyExtractor={(item) => item.id.toString()}
