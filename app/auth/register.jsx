@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import logoImage from '../../assets/images/logo.png';
-import { registerApi } from '../services/auth/registerApi';
+import { registerApi } from '../../services/auth/registerApi';
 
 const RegisterScreen = () => {
   const router = useRouter();

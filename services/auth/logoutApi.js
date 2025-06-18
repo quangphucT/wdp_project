@@ -3,7 +3,6 @@ import axiosClient from '../../configs/axiosClient';
 export const logoutApi = async (values) => {
   try {
     const response = await axiosClient.post('/auth/logout',values );
-    console.log("Response:", response)
     return response;
   } catch (error) {
     console.error('Login API Error:', error.response?.data || error.message);

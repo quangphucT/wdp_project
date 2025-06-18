@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native";
 import logoImage from "../../assets/images/logo.png";
-import { loginApi } from "../services/auth/loginApi";
+import { loginApi } from "../../services/auth/loginApi";
 const LoginScreen = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -89,10 +89,7 @@ const LoginScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Back Home */}
-      <TouchableOpacity onPress={() => router.push("/")}>
-        <Text style={styles.backHomeText}>← Về trang chủ</Text>
-      </TouchableOpacity>
+
     </LinearGradient>
   );
 };

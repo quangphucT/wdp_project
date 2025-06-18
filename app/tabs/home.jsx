@@ -13,7 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { logoutApi } from "../services/auth/logoutApi";
+import { logoutApi } from "../../services/auth/logoutApi";
 const HomeScreen = () => {
   const router = useRouter();
 const [isAuthenticated, setIsAuthenticated] = useState(null); 
@@ -89,20 +89,31 @@ const [isAuthenticated, setIsAuthenticated] = useState(null);
       bgColor: "#fce4ec",
     },
   ];
-  const handleLogout = async() =>{
-    try {
-const refreshToken = await SecureStore.getItemAsync('refreshToken');
-console.log("RefreshToken:", refreshToken)
-       await logoutApi({
-           refreshToken: refreshToken
-})
-      await SecureStore.deleteItemAsync('accessToken');
-           await SecureStore.deleteItemAsync('refreshToken');
-           router.push('/auth/login');
-    } catch (error) {
-      console.log(error)
-    }
+//   const handleLogout = async () => {
+//   try {
+//     const refreshToken = await SecureStore.getItemAsync('refreshToken');
+//     await logoutApi({ refreshToken });
+
+//     await SecureStore.deleteItemAsync('accessToken');
+//     await SecureStore.deleteItemAsync('refreshToken');
+
+//     router.push('/auth/login');
+//   } catch (error) {
+//     console.log("Logout Error:", error);
+//   }
+// };
+const handleLogout = async () => {
+  try {
+    // Chỉ xoá token trong SecureStore
+    await SecureStore.deleteItemAsync('accessToken');
+    await SecureStore.deleteItemAsync('refreshToken');
+
+    // Optional: điều hướng người dùng về màn hình login
+    router.push('/auth/login');
+  } catch (error) {
+    console.log("Logout Error:", error);
   }
+};
 
   return (
     <ScrollView style={styles.container}>
