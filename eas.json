@@ -1,0 +1,31 @@
+{
+  "cli": {
+    "version": ">= 6.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "autoIncrement": true,
+      "node":"20.12.2",
+      "env": {
+        "API_URL": "https://company.com/api"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./pc-api-key.json",
+        "track": "production"
+      }
+    }
+  }
+}

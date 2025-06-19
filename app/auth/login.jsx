@@ -1,11 +1,10 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import * as SecureStore from "expo-secure-store";
 import { useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Image,
-  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
@@ -13,50 +12,61 @@ import {
 } from "react-native";
 import logoImage from "../../assets/images/logo.png";
 import { loginApi } from "../../services/auth/loginApi";
+import useAuthStore from "../../stores/authStore";
+
 const LoginScreen = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  // Sử dụng authStore
+  const { login, isLoading } = useAuthStore();
 
   const handleLogin = async () => {
     if (!email || !password) {
-  
       Alert.alert("Lỗi", "Vui lòng nhập đầy đủ email và mật khẩu");
       return;
     }
 
     try {
-      setLoading(true);
-      const res = await loginApi({email, password});
+      const res = await loginApi({ email, password });
+
       if (res?.data?.data?.accessToken) {
-        await SecureStore.setItemAsync("accessToken",res.data.data.accessToken);
-         await SecureStore.setItemAsync("refreshToken",res.data.data.refreshToken);
-      
-        Alert.alert("Thành công", "Đăng nhập thành công!");
-        router.replace("/"); // điều hướng sang Home
+        const loginData = {
+          accessToken: res.data.data.accessToken,
+          refreshToken: res.data.data.refreshToken,
+          user: res.data.data.user
+        };
+
+        // Sử dụng authStore.login để lưu thông tin đăng nhập
+        const success = await login(loginData);
+
+        if (success) {
+          Alert.alert("Thành công", "Đăng nhập thành công!");
+          router.replace("/"); // điều hướng sang Home
+        } else {
+          Alert.alert("Thất bại", "Có lỗi xảy ra khi lưu thông tin đăng nhập");
+        }
       } else {
         Alert.alert("Thất bại", "Thông tin đăng nhập không chính xác");
       }
     } catch (err) {
+      // console.error("Login error:", err);
       Alert.alert("Lỗi", "Không thể đăng nhập. Vui lòng thử lại");
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
-    <LinearGradient colors={["#007bff", "#0056b3"]} style={styles.container}>
+    <LinearGradient colors={["#007bff", "#0056b3"]} className="flex-1 px-6 justify-center items-center">
       {/* Logo */}
-      <View style={styles.logoContainer}>
-        <Image source={logoImage} style={styles.logo} />
+      <View className="w-80 h-[90px] mb-8">
+        <Image source={logoImage} className="w-full h-full" resizeMode="contain" />
       </View>
 
       {/* Title */}
-      <Text style={styles.title}>Đăng nhập</Text>
+      <Text className="text-3xl text-white font-bold mb-8">Đăng nhập</Text>
 
       <TextInput
-        style={styles.input}
+        className="w-full h-[50px] bg-white rounded-lg px-4 text-base text-gray-800 mb-4"
         placeholder="Email"
         placeholderTextColor="#aaa"
         keyboardType="email-address"
@@ -66,7 +76,7 @@ const LoginScreen = () => {
       />
 
       <TextInput
-        style={styles.input}
+        className="w-full h-[50px] bg-white rounded-lg px-4 text-base text-gray-800 mb-4"
         placeholder="Mật khẩu"
         placeholderTextColor="#aaa"
         secureTextEntry
@@ -75,93 +85,30 @@ const LoginScreen = () => {
       />
 
       {/* Login Button */}
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-        <Text style={styles.loginButtonText}>
-          {loading ? "Đang đăng nhập..." : "Đăng nhập"}
-        </Text>
+      <TouchableOpacity
+        className="w-full h-[50px] bg-white rounded-lg justify-center items-center mt-2 mb-6"
+        onPress={handleLogin}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <View className="flex-row items-center">
+            <ActivityIndicator size="small" color="#007bff" />
+            <Text className="text-blue-500 font-bold text-lg ml-2">Đang đăng nhập...</Text>
+          </View>
+        ) : (
+          <Text className="text-blue-500 font-bold text-lg">Đăng nhập</Text>
+        )}
       </TouchableOpacity>
 
       {/* Register Link */}
-      <View style={styles.registerContainer}>
-        <Text style={styles.registerText}>Chưa có tài khoản? </Text>
+      <View className="flex-row mb-2">
+        <Text className="text-sm text-white">Chưa có tài khoản? </Text>
         <TouchableOpacity onPress={() => router.push("/auth/register")}>
-          <Text style={styles.registerLink}>Đăng ký ngay</Text>
+          <Text className="text-sm text-white font-bold underline">Đăng ký ngay</Text>
         </TouchableOpacity>
       </View>
-
-
     </LinearGradient>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 25,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  logoContainer: {
-    width: 320,
-    height: 90,
-    marginBottom: 30,
-  },
-  logo: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "contain",
-  },
-  title: {
-    fontSize: 28,
-    color: "#fff",
-    fontWeight: "bold",
-    marginBottom: 30,
-  },
-  input: {
-    width: "100%",
-    height: 50,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    fontSize: 16,
-    color: "#333",
-    marginBottom: 15,
-  },
-  loginButton: {
-    width: "100%",
-    height: 50,
-    backgroundColor: "#ffffff",
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 10,
-    marginBottom: 25,
-  },
-  loginButtonText: {
-    color: "#007bff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  registerContainer: {
-    flexDirection: "row",
-    marginBottom: 10,
-  },
-  registerText: {
-    fontSize: 14,
-    color: "#fff",
-  },
-  registerLink: {
-    fontSize: 14,
-    color: "#fff",
-    fontWeight: "bold",
-    textDecorationLine: "underline",
-  },
-  backHomeText: {
-    fontSize: 14,
-    color: "#fff",
-    marginTop: 20,
-    textDecorationLine: "underline",
-  },
-});
 
 export default LoginScreen;
