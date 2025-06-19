@@ -1,86 +1,208 @@
-import React, { useState } from 'react';
+import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
-  View, Text, TextInput, StyleSheet, TouchableOpacity, Image, ScrollView
+  ActivityIndicator,
+  Image, ScrollView,
+  Text, TextInput, TouchableOpacity,
+  View
 } from 'react-native';
+import useAuthStore from '../../stores/authStore';
+import { useAuthCheck } from '../../utils/auth';
 
 const Profile = () => {
-  const [email, setEmail] = useState('mai.hang@gmail.com');
-  const [phone, setPhone] = useState('0912345678');
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuthCheck(router);
+
+  // Sử dụng Zustand store
+  const { logout, user } = useAuthStore(state => ({
+    logout: state.logout,
+    user: state.user
+  }));
+
+  // Local state cho form
+  const [formData, setFormData] = useState({
+    email: '', phone: '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
+
+  // Cập nhật giá trị form
+  const handleChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Cập nhật form khi có dữ liệu từ store
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        email: user.email || '',
+      }));
+    }
+  }, [user]);
+
+  // Xử lý lưu thay đổi
+  const handleSaveChanges = async () => {
+    setIsSaving(true);
+    setSaveMessage('');
+
+    try {
+      // Kiểm tra nếu đang thay đổi mật khẩu
+      if (formData.newPassword) {
+        if (formData.newPassword !== formData.confirmPassword) {
+          setSaveMessage('Mật khẩu mới không khớp');
+          return;
+        }
+
+        if (!formData.currentPassword) {
+          setSaveMessage('Vui lòng nhập mật khẩu hiện tại');
+          return;
+        }
+
+        // Ở đây có thể thêm logic gọi API đổi mật khẩu
+      }
+
+      setSaveMessage('Lưu thay đổi thành công');
+
+      // Xóa các trường mật khẩu
+      setFormData(prev => ({
+        ...prev,
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      }));
+    } catch (error) {
+      console.error('Update profile error:', error);
+      setSaveMessage('Lỗi khi cập nhật thông tin');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Xử lý đăng xuất
+  const handleLogout = () => {
+    logout(router);
+  };
+
+  if (authLoading) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text className="mt-2">Đang tải...</Text>
+      </View>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null; // Router sẽ tự redirect sang màn hình login
+  }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView className="flex-1 bg-white p-4">
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.welcome}>Xin chào, Mai</Text>
-        <Text style={styles.subText}>Cập nhật hồ sơ</Text>
-        <Text style={styles.note}>Thay đổi thông tin cá nhân và bảo mật tài khoản</Text>
+      <View className="mb-5 flex-row justify-between items-center">
+        <View>          <Text className="text-lg font-semibold">
+          Xin chào, {user?.name?.split(' ').pop() || 'User'}
+        </Text>
+          <Text className="text-base font-semibold mt-1.5">Cập nhật hồ sơ</Text>
+        </View>
+        <TouchableOpacity
+          onPress={handleLogout}
+          className="px-3 py-1 bg-red-50 rounded-full"
+        >
+          <Text className="text-red-500 text-sm">Đăng xuất</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Avatar + Name */}
-      <View style={styles.profileBox}>
+      <View className="items-center mb-5">
         <Image
           source={{ uri: 'https://i.pravatar.cc/150?img=12' }}
-          style={styles.avatar}
+          className="w-20 h-20 rounded-full mb-2.5"
         />
-        <Text style={styles.name}>Mai Thu Hằng</Text>
-        <Text style={styles.role}>Bệnh nhân</Text>
+        <Text className="text-lg font-semibold">{user?.name || 'User'}</Text>
+        <Text className="text-sm text-gray-500">{user?.role || 'Người dùng'}</Text>
       </View>
 
+      {/* Save Message */}
+      {saveMessage ? (
+        <View className={`p-3 rounded-lg mb-3 ${saveMessage.includes('thành công') ? 'bg-green-100' : 'bg-red-100'}`}>
+          <Text className={saveMessage.includes('thành công') ? 'text-green-700' : 'text-red-700'}>
+            {saveMessage}
+          </Text>
+        </View>
+      ) : null}
+
       {/* Input Fields */}
-      <View style={styles.inputContainer}>
+      <View className="space-y-3">
         <TextInput
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
+          className="border border-gray-300 rounded-lg p-3 bg-gray-50"
+          value={formData.email}
+          onChangeText={(text) => handleChange('email', text)}
           placeholder="Email"
           keyboardType="email-address"
         />
         <TextInput
-          style={styles.input}
-          value={phone}
-          onChangeText={setPhone}
+          className="border border-gray-300 rounded-lg p-3 bg-gray-50"
+          value={formData.phone}
+          onChangeText={(text) => handleChange('phone', text)}
           placeholder="Số điện thoại"
           keyboardType="phone-pad"
         />
+
+        <View className="h-px bg-gray-200 my-2" />
+        <Text className="text-base font-medium text-gray-700">Đổi mật khẩu</Text>
+
         <TextInput
-          style={styles.input}
-          value={currentPassword}
-          onChangeText={setCurrentPassword}
+          className="border border-gray-300 rounded-lg p-3 bg-gray-50"
+          value={formData.currentPassword}
+          onChangeText={(text) => handleChange('currentPassword', text)}
           placeholder="Mật khẩu hiện tại"
           secureTextEntry
         />
         <TextInput
-          style={styles.input}
-          value={newPassword}
-          onChangeText={setNewPassword}
+          className="border border-gray-300 rounded-lg p-3 bg-gray-50"
+          value={formData.newPassword}
+          onChangeText={(text) => handleChange('newPassword', text)}
           placeholder="Mật khẩu mới"
           secureTextEntry
         />
         <TextInput
-          style={styles.input}
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
+          className="border border-gray-300 rounded-lg p-3 bg-gray-50"
+          value={formData.confirmPassword}
+          onChangeText={(text) => handleChange('confirmPassword', text)}
           placeholder="Xác nhận mật khẩu mới"
           secureTextEntry
         />
 
         {/* Save Button */}
-        <TouchableOpacity style={styles.saveButton}>
-          <Text style={styles.saveButtonText}>Lưu thay đổi</Text>
+        <TouchableOpacity
+          className={`rounded-lg p-3 items-center mt-2 ${isSaving ? 'bg-blue-300' : 'bg-blue-500'}`}
+          onPress={handleSaveChanges}
+          disabled={isSaving}
+        >
+          {isSaving ? (
+            <View className="flex-row items-center">
+              <ActivityIndicator size="small" color="#ffffff" />
+              <Text className="text-white font-semibold ml-2">Đang lưu...</Text>
+            </View>
+          ) : (
+            <Text className="text-white font-semibold">Lưu thay đổi</Text>
+          )}
         </TouchableOpacity>
       </View>
 
       {/* Forgot Password */}
-      <View style={styles.forgotBox}>
-        <Text style={styles.forgotText}>Quên mật khẩu?</Text>
-        <Text style={styles.forgotDesc}>
+      <View className="mt-6 bg-blue-50 p-4 rounded-lg">
+        <Text className="font-semibold text-base">Quên mật khẩu?</Text>
+        <Text className="text-sm text-gray-600 my-1">
           Nhận mã xác nhận qua email để đặt lại mật khẩu mới.
         </Text>
         <TouchableOpacity>
-          <Text style={styles.requestText}>📩 Gửi yêu cầu</Text>
+          <Text className="text-blue-600 font-medium mt-1">📩 Gửi yêu cầu</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -88,43 +210,3 @@ const Profile = () => {
 };
 
 export default Profile;
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', padding: 16 },
-  header: { marginBottom: 20 },
-  welcome: { fontSize: 18, fontWeight: '600' },
-  subText: { fontSize: 16, fontWeight: '600', marginTop: 6 },
-  note: { fontSize: 13, color: 'gray' },
-
-  profileBox: { alignItems: 'center', marginBottom: 20 },
-  avatar: { width: 80, height: 80, borderRadius: 40, marginBottom: 10 },
-  name: { fontSize: 16, fontWeight: '600' },
-  role: { color: 'gray', fontSize: 13 },
-
-  inputContainer: {},
-  input: {
-    backgroundColor: '#f1f1f1',
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 12,
-    fontSize: 14,
-  },
-  saveButton: {
-    backgroundColor: '#4B39EF',
-    padding: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  saveButtonText: { color: '#fff', fontWeight: '600' },
-
-  forgotBox: {
-    backgroundColor: '#f1f5fd',
-    padding: 14,
-    borderRadius: 10,
-    marginTop: 30,
-  },
-  forgotText: { fontSize: 15, fontWeight: '600', marginBottom: 4 },
-  forgotDesc: { fontSize: 13, color: '#555' },
-  requestText: { marginTop: 8, color: '#4B39EF', fontWeight: '600' },
-});
