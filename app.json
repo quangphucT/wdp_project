@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "hiv-mobile-app",
-    "slug": "hiv-mobile-app",
+    "name": "HIV Mobile App",
+    "slug": "hiv-care-hub",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -9,13 +9,17 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.yourcompany.hivmobileapp"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "package": "com.yourcompany.hivmobileapp",
+      "versionCode": 1,
+      "permissions": [],
       "edgeToEdgeEnabled": true
     },
     "web": {
@@ -38,6 +42,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "d24dc22a-e01e-4180-8155-08ca5c46f926"
+      }
+    },
+    "owner": "quanghuy180423"
   }
 }
