@@ -1,5 +1,6 @@
+import { Link } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import blogApi from '../../services/blogs/getAllBlogsApi';
 
 
@@ -20,21 +21,24 @@ const BlogScreen = () => {
   }, []);
 
   const renderBlogItem = ({ item }) => (
-    <View style={styles.card}>
-      <Image source={{ uri: item.imageUrl }} style={styles.image} />
-      <View style={styles.cardContent}>
-        <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
-        <Text style={styles.content} numberOfLines={3}>
-          {item.content}
-        </Text>
-        <View style={styles.footer}>
-          <Text style={styles.author}>👤 {item.author?.name || 'Unknown'}</Text>
-          <Text style={styles.category}>📚 {item.category?.title}</Text>
-        </View>
+  <View style={styles.card}>
+    <Link href={`/blogs/${item.id}`} asChild>
+      <TouchableOpacity>
+        <Image source={{ uri: item.imageUrl }} style={styles.image} />
+      </TouchableOpacity>
+    </Link>
+
+    <View style={styles.cardContent}>
+      <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
+      <Text style={styles.content} numberOfLines={3}>{item.content}</Text>
+
+      <View style={styles.footer}>
+        <Text style={styles.author}>👤 {item.author?.name || 'Unknown'}</Text>
+        <Text style={styles.category}>📚 {item.category?.title || 'Chưa phân loại'}</Text>
       </View>
     </View>
-  );
-
+  </View>
+);
   return (
     <View style={styles.container}>
       <FlatList

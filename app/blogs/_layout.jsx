@@ -9,6 +9,12 @@ export default function BlogLayout() {
           title: "Tin tức",
         }}
       />
+       <Stack.Screen
+        name="[id]"
+        options={{
+          title: "Details Blog",
+        }}
+      />
     </Stack>
   );
 }
