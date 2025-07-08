@@ -46,7 +46,7 @@ const HomeScreen = () => {
   const userInitial = user?.name?.[0] || 'U';
 
   return (
-    <ScrollView className="flex-1 bg-slate-50">
+    <ScrollView className="flex-1 bg-slate-50 mt-[20px]">
       {/* Greeting */}
       <View className="flex-row items-center p-4">
         <View className="w-12 h-12 rounded-full bg-blue-500 justify-center items-center mr-3">
