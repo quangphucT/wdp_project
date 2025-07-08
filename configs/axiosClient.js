@@ -12,7 +12,7 @@ const axiosClient = axios.create({
 // Gắn accessToken vào mỗi request
 axiosClient.interceptors.request.use(
   async (config) => {
-    const token = await SecureStore.getItemAsync('token');
+    const token = await SecureStore.getItemAsync('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

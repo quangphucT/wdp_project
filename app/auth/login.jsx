@@ -42,15 +42,22 @@ const LoginScreen = () => {
 
         if (success) {
           Alert.alert("Thành công", "Đăng nhập thành công!");
-          router.replace("/"); // điều hướng sang Home
+          
+          // Kiểm tra role để điều hướng
+          const userRole = res.data.data.user?.role;
+          if (userRole === "DOCTOR") {
+            router.replace("/doctor"); // điều hướng sang màn hình doctor
+          } else {
+            router.replace("/"); // điều hướng sang Home cho user thường
+          }
         } else {
           Alert.alert("Thất bại", "Có lỗi xảy ra khi lưu thông tin đăng nhập");
         }
       } else {
         Alert.alert("Thất bại", "Thông tin đăng nhập không chính xác");
       }
-    } catch (err) {
-      // console.error("Login error:", err);
+    } catch (_err) {
+      // console.error("Login error:", _err);
       Alert.alert("Lỗi", "Không thể đăng nhập. Vui lòng thử lại");
     }
   };
