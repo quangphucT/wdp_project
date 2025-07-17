@@ -22,7 +22,7 @@ export default function TabLayout() {
       <Tabs.Screen name="home" options={{ title: 'Trang chủ' }} />
       <Tabs.Screen name="schedule" options={{ title: 'Lịch' }} />
       <Tabs.Screen name="messages" options={{ title: 'Tin nhắn' }} />
-      <Tabs.Screen name="profile" options={{ title: 'Cá nhân' }} />
+      <Tabs.Screen name="profile_patient" options={{ title: 'Cá nhân' }} />
     </Tabs>
   );
 }
