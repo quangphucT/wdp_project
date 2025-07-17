@@ -45,14 +45,14 @@ const useFeatureStore = create((set, get) => ({
       bgColor: "bg-orange-50",
       route: '/blogs/blog',
     },
-    {
-      id: 'meeting',
-      title: "Meeting Record",
-      desc: "Tư vấn video cá nhân",
-      icon: <Entypo name="video" size={24} color="#00acc1" />,
-      bgColor: "bg-cyan-50",
-      route: null, // Chưa có màn hình cụ thể
-    },
+    // {
+    //   id: 'meeting',
+    //   title: "Meeting Record",
+    //   desc: "Tư vấn video cá nhân",
+    //   icon: <Entypo name="video" size={24} color="#00acc1" />,
+    //   bgColor: "bg-cyan-50",
+    //   route: null, // Chưa có màn hình cụ thể
+    // },
     {
       id: 'appointments',
       title: "Quản lí cuộc hẹn",
@@ -65,7 +65,7 @@ const useFeatureStore = create((set, get) => ({
         />
       ),
       bgColor: "bg-pink-50",
-      route: '/tabs/schedule',
+      route: '/user/user_appointment',
     },
   ],
 

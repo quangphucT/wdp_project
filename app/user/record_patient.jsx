@@ -18,7 +18,6 @@ const PatientRecordScreen = () => {
         const userName = await SecureStore.getItemAsync("name");
         const userEmail = await SecureStore.getItemAsync("email");
         
-        console.log("Patient ID:", patientId);
         
         setCurrentUser({
           id: patientId,
@@ -59,7 +58,6 @@ const PatientRecordScreen = () => {
   const fetchingPatientMedicalRecord = async (patientId) => {
     try {
       const response = await getPatientMedicalRecordApi(patientId);
-      console.log("API Response:", response.data);
       
       if (response.data && response.data.data && response.data.data.data) {
         setPatientMedicalRecord(response.data.data.data);
