@@ -29,7 +29,7 @@ const useFeatureStore = create((set, get) => ({
       desc: "Thông tin cá nhân",
       icon: <FontAwesome5 name="user-edit" size={24} color="#43a047" />,
       bgColor: "bg-green-50",
-      route: '/tabs/profile',
+      route: '/user/profile_patient',
     },
     {
       id: 'news',

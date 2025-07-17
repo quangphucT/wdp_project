@@ -36,7 +36,8 @@ const useAuthStore = create(
           // Lưu token vào SecureStore
           await SecureStore.setItemAsync('accessToken', accessToken);
           await SecureStore.setItemAsync('refreshToken', refreshToken);
-          
+          await SecureStore.setItemAsync('userId', user.id.toString());
+        
           // Cập nhật state
           set({ 
             isAuthenticated: true,
