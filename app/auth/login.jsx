@@ -15,9 +15,13 @@ import { loginApi } from "../../services/auth/loginApi";
 import useAuthStore from "../../stores/authStore";
 
 const LoginScreen = () => {
+
+
   const router = useRouter();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  
   // Sử dụng authStore
   const { login, isLoading } = useAuthStore();
 
@@ -57,7 +61,6 @@ const LoginScreen = () => {
         Alert.alert("Thất bại", "Thông tin đăng nhập không chính xác");
       }
     } catch (_err) {
-      // console.error("Login error:", _err);
       Alert.alert("Lỗi", "Không thể đăng nhập. Vui lòng thử lại");
     }
   };

@@ -83,7 +83,7 @@ const WeeklySchedule = () => {
         // Add shift slots based on API data
         if (schedule.shift === "MORNING") {
           slots.push({
-            time: "08:00-12:00",
+            time: "07:00-11:00",
             type: "working",
             patient: null,
             reason: "Ca sáng",
@@ -101,15 +101,15 @@ const WeeklySchedule = () => {
           });
         }
         
-        if (schedule.shift === "EVENING") {
-          slots.push({
-            time: "18:00-22:00",
-            type: "working",
-            patient: null,
-            reason: "Ca tối",
-            scheduleId: schedule.id
-          });
-        }
+        // if (schedule.shift === "EVENING") {
+        //   slots.push({
+        //     time: "18:00-22:00",
+        //     type: "working",
+        //     patient: null,
+        //     reason: "Ca tối",
+        //     scheduleId: schedule.id
+        //   });
+        // }
       }
     });
     

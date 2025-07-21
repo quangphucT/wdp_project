@@ -13,6 +13,7 @@ import getAppointmentDoctor from "../../../services/doctor/getAppointmentDoctor"
 import useAuthStore from "../../../stores/authStore";
 
 const DailyAppointments = () => {
+
   const router = useRouter();
   const [appointments, setAppointments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,27 +25,16 @@ const DailyAppointments = () => {
   // Fetch tất cả appointments từ API
   const fetchAppointments = useCallback(async (filterParams = {}) => {
     if (!user?.id) {
-      console.log("No user ID found:", user);
       return;
     }
-    
-    console.log("Fetching appointments for user:", user);
-    console.log("Filter params:", filterParams);
-    
     try {
       setIsLoading(true);
       // Sử dụng doctor ID thay vì user ID nếu có
       const doctorId = user.doctor?.id || user.id;
-      console.log("Using doctor ID:", doctorId);
-      
       const response = await getAppointmentDoctor.getAppointmentDoctor(doctorId, filterParams);
-      console.log("API Response:", response.data);
-      
       const apiAppointments = response?.data?.data?.data || [];
       setAppointments(apiAppointments);
     } catch (error) {
-      console.error("Error fetching appointments:", error);
-      console.error("Error response:", error.response);
       Alert.alert("Lỗi", `Không thể tải dữ liệu cuộc hẹn: ${error.response?.data?.message || error.message}`);
     } finally {
       setIsLoading(false);

@@ -6,8 +6,6 @@ export const loginApi = async (values) => {
     return response;
   } catch (error) {
     const apiError = error.response?.data;
-    console.error('Login API Error:', apiError);
-    // Nếu có message dạng object chứa mảng errors
     if (apiError?.message?.errors) {
       const firstError = apiError.message.errors[0];
       const message = `${firstError?.path}: ${firstError?.message}`;
