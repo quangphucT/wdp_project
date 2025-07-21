@@ -1,4 +1,4 @@
-import { Entypo, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
+import { FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import { create } from 'zustand';
 
 /**
@@ -13,7 +13,7 @@ const useFeatureStore = create((set, get) => ({
       desc: "Theo dõi thuốc",
       icon: <MaterialCommunityIcons name="pill" size={24} color="#1e88e5" />,
       bgColor: "bg-blue-50",
-      route: '/tabs/schedule',
+      route: '/user/lich_uong_thuoc',
     },
     {
       id: 'records',
