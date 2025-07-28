@@ -1,11 +1,17 @@
 import { Link } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import blogApi from '../../services/blogs/getAllBlogsApi';
 
 
 const BlogScreen = () => {
   const [blogs, setBlogs] = useState([]);
+  const { width } = useWindowDimensions();
+
+  // Function để strip HTML tags cho preview
+  const stripHtml = (html) => {
+    return html.replace(/<[^>]*>/g, '').trim();
+  };
 
   const fetchingDataBlog = async () => {
     try {
@@ -30,7 +36,11 @@ const BlogScreen = () => {
 
     <View style={styles.cardContent}>
       <Text style={styles.title} numberOfLines={2}>{item.title}</Text>
-      <Text style={styles.content} numberOfLines={3}>{item.content}</Text>
+      
+      {/* Sử dụng stripHtml để hiển thị preview text không có HTML tags */}
+      <Text style={styles.content} numberOfLines={3}>
+        {stripHtml(item.content)}
+      </Text>
 
       <View style={styles.footer}>
         <Text style={styles.author}>👤 {item.author?.name || 'Unknown'}</Text>

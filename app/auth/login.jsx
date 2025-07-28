@@ -66,56 +66,84 @@ const LoginScreen = () => {
   };
 
   return (
-    <LinearGradient colors={["#007bff", "#0056b3"]} className="flex-1 px-6 justify-center items-center">
-      {/* Logo */}
-      <View className="w-80 h-[90px] mb-8">
-        <Image source={logoImage} className="w-full h-full" resizeMode="contain" />
-      </View>
-
-      {/* Title */}
-      <Text className="text-3xl text-white font-bold mb-8">Đăng nhập</Text>
-
-      <TextInput
-        className="w-full h-[50px] bg-white rounded-lg px-4 text-base text-gray-800 mb-4"
-        placeholder="Email"
-        placeholderTextColor="#aaa"
-        keyboardType="email-address"
-        autoCapitalize="none"
-        value={email}
-        onChangeText={setEmail}
-      />
-
-      <TextInput
-        className="w-full h-[50px] bg-white rounded-lg px-4 text-base text-gray-800 mb-4"
-        placeholder="Mật khẩu"
-        placeholderTextColor="#aaa"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-
-      {/* Login Button */}
-      <TouchableOpacity
-        className="w-full h-[50px] bg-white rounded-lg justify-center items-center mt-2 mb-6"
-        onPress={handleLogin}
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <View className="flex-row items-center">
-            <ActivityIndicator size="small" color="#007bff" />
-            <Text className="text-blue-500 font-bold text-lg ml-2">Đang đăng nhập...</Text>
+    <LinearGradient colors={["#4F46E5", "#7C3AED"]} className="flex-1">
+      <View className="flex-1 px-6 justify-center">
+        {/* Header Section */}
+        <View className="items-center mb-12">
+          {/* Logo */}
+          <View className="w-24 h-24 bg-white/20 rounded-full justify-center items-center mb-6">
+            <Image source={logoImage} className="w-16 h-16" resizeMode="contain" />
           </View>
-        ) : (
-          <Text className="text-blue-500 font-bold text-lg">Đăng nhập</Text>
-        )}
-      </TouchableOpacity>
+          
+          {/* Title */}
+          <Text className="text-3xl text-white font-bold mb-2">Chào mừng trở lại</Text>
+          <Text className="text-white/80 text-base text-center">
+            Đăng nhập để tiếp tục sử dụng dịch vụ
+          </Text>
+        </View>
 
-      {/* Register Link */}
-      <View className="flex-row mb-2">
-        <Text className="text-sm text-white">Chưa có tài khoản? </Text>
-        <TouchableOpacity onPress={() => router.push("/auth/register")}>
-          <Text className="text-sm text-white font-bold underline">Đăng ký ngay</Text>
-        </TouchableOpacity>
+        {/* Form Section */}
+        <View className="space-y-4">
+          {/* Email Input */}
+          <View className="mb-4">
+            <Text className="text-white/90 text-sm font-medium mb-2">Email</Text>
+            <TextInput
+              className="w-full h-14 bg-white/10 border border-white/20 rounded-xl px-4 text-white text-base"
+              placeholder="Nhập email của bạn"
+              placeholderTextColor="#ffffff80"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+            />
+          </View>
+
+          {/* Password Input */}
+          <View className="mb-6">
+            <Text className="text-white/90 text-sm font-medium mb-2">Mật khẩu</Text>
+            <TextInput
+              className="w-full h-14 bg-white/10 border border-white/20 rounded-xl px-4 text-white text-base"
+              placeholder="Nhập mật khẩu"
+              placeholderTextColor="#ffffff80"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
+          </View>
+
+          {/* Login Button */}
+          <TouchableOpacity
+            className="w-full h-14 bg-white rounded-xl justify-center items-center shadow-lg"
+            onPress={handleLogin}
+            disabled={isLoading}
+            style={{
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 8,
+            }}
+          >
+            {isLoading ? (
+              <View className="flex-row items-center">
+                <ActivityIndicator size="small" color="#4F46E5" />
+                <Text className="text-indigo-600 font-semibold text-base ml-3">Đang đăng nhập...</Text>
+              </View>
+            ) : (
+              <Text className="text-indigo-600 font-semibold text-base">Đăng nhập</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Footer Section */}
+        <View className="items-center mt-8">
+          <View className="flex-row items-center">
+            <Text className="text-white/80 text-sm">Chưa có tài khoản? </Text>
+            <TouchableOpacity onPress={() => router.push("/auth/register")}>
+              <Text className="text-white font-semibold text-sm underline">Đăng ký ngay</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
     </LinearGradient>
   );

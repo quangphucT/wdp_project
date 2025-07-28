@@ -69,16 +69,19 @@ const DailyAppointments = () => {
 
   const formatTime = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('vi-VN', { 
-      hour: '2-digit', 
-      minute: '2-digit',
-      hour12: false 
-    });
+    // Sử dụng UTC methods để hiển thị đúng thời gian từ database
+    const hours = date.getUTCHours().toString().padStart(2, '0');
+    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
   };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
-    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+    // Sử dụng UTC methods để hiển thị đúng ngày từ database
+    const day = date.getUTCDate().toString().padStart(2, '0');
+    const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+    const year = date.getUTCFullYear();
+    return `${day}/${month}/${year}`;
   };
 
   // Helper functions cho date filter

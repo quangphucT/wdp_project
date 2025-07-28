@@ -67,6 +67,22 @@ const useFeatureStore = create((set, get) => ({
       bgColor: "bg-pink-50",
       route: '/user/user_appointment',
     },
+
+
+    {
+      id: 'book_appointments',
+      title: "Đặt lịch cuộc hẹn",
+    
+      icon: (
+        <MaterialCommunityIcons
+          name="calendar-clock"
+          size={24}
+          color="#a81b60"
+        />
+      ),
+      bgColor: "bg-pink-70",
+      route: '/user/book_appointment',
+    },
   ],
 
   // Lấy danh sách tính năng

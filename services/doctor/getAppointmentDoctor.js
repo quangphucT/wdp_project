@@ -14,12 +14,13 @@ const getAppointmentDoctor = {
     if (params.status) {
       searchParams.append('status', params.status);
     }
-    if (params.page) {
-      searchParams.append('page', params.page);
-    }
-    if (params.limit) {
-      searchParams.append('limit', params.limit);
-    }
+    
+    // Pagination default
+    const page = params.page || 1;
+    const limit = params.limit || 100000;
+    
+    searchParams.append('page', page);
+    searchParams.append('limit', limit);
     
     const queryString = searchParams.toString();
     const url = `/appointments/doctor/${doctor_id}${queryString ? `?${queryString}` : ''}`;

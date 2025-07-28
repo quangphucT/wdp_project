@@ -26,7 +26,24 @@ const WeeklySchedule = () => {
     try {
       setIsLoading(true);
       const response = await getScheduleDoctorAll.getScheduleDoctorAll(user.id);
-      setScheduleData(response.data.data || []);
+      const scheduleDataFromAPI = response.data.data || [];
+      
+      console.log('Raw API Response:', response.data);
+      console.log('Schedule Data Array:', scheduleDataFromAPI);
+      console.log('Number of schedules:', scheduleDataFromAPI.length);
+      
+      // Log each schedule item
+      scheduleDataFromAPI.forEach((schedule, index) => {
+        console.log(`Schedule ${index + 1}:`, {
+          id: schedule.id,
+          date: schedule.date,
+          dayOfWeek: schedule.dayOfWeek,
+          shift: schedule.shift,
+          isOff: schedule.isOff
+        });
+      });
+      
+      setScheduleData(scheduleDataFromAPI);
     } catch (error) {
       console.error("Error fetching schedule:", error);
       Alert.alert("Lỗi", "Không thể tải dữ liệu lịch làm việc");
@@ -49,11 +66,21 @@ const WeeklySchedule = () => {
       const date = new Date(startOfWeek);
       date.setDate(startOfWeek.getDate() + i);
       
+      // Convert date to YYYY-MM-DD format for comparison
+      const targetDateStr = date.toISOString().split('T')[0];
+      
       // Find schedule data for this date
       const daySchedules = scheduleData.filter(schedule => {
+        // Convert API date to YYYY-MM-DD format for accurate comparison
         const scheduleDate = new Date(schedule.date);
-        return scheduleDate.toDateString() === date.toDateString();
+        const scheduleDateStr = scheduleDate.toISOString().split('T')[0];
+        
+        console.log(`Comparing: ${targetDateStr} vs ${scheduleDateStr} for schedule ID ${schedule.id}`);
+        
+        return scheduleDateStr === targetDateStr;
       });
+      
+      console.log(`Date ${targetDateStr}: Found ${daySchedules.length} schedules`, daySchedules);
       
       days.push({
         dayName: ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN'][i],

@@ -1,12 +1,14 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Image, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import RenderHtml from 'react-native-render-html';
 import getDetailBlogApi from '../../services/blogs/getDetailsBlogApi';
 
 const BlogDetails = () => {
   const { id } = useLocalSearchParams();
   const [blog, setBlog] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { width } = useWindowDimensions();
 
   useEffect(() => {
     if (id) {
@@ -63,9 +65,23 @@ const BlogDetails = () => {
       </View>
 
       {/* Nội dung blog */}
-      <Text className="text-base text-gray-700 leading-7">
-        {blog.content}
-      </Text>
+      <View className="mb-4">
+        <RenderHtml
+          contentWidth={width}
+          source={{ html: blog.content }}
+          tagsStyles={{
+            h1: { fontSize: 24, fontWeight: 'bold', marginVertical: 10, color: '#1F2937' },
+            h2: { fontSize: 20, fontWeight: 'bold', marginVertical: 8, color: '#1F2937' },
+            h3: { fontSize: 18, fontWeight: 'bold', marginVertical: 6, color: '#1F2937' },
+            p: { fontSize: 16, lineHeight: 24, marginVertical: 4, color: '#374151' },
+            strong: { fontWeight: 'bold', color: '#1F2937' },
+            a: { color: '#3B82F6', textDecorationLine: 'underline' },
+            li: { fontSize: 16, lineHeight: 24, marginVertical: 2, color: '#374151' },
+            ul: { marginVertical: 8 },
+            ol: { marginVertical: 8 }
+          }}
+        />
+      </View>
     </ScrollView>
   );
 };

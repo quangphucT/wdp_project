@@ -12,14 +12,15 @@ export default function TabLayout() {
         tabBarIcon: ({ color, size }) => {
           let iconName;
           if (route.name === 'home') iconName = 'home';
-         
-          else if (route.name === 'profile') iconName = 'person';
+          else if (route.name === 'profile_patient') iconName = 'person';
           return <Ionicons name={iconName} size={size} color={color} />;
         },
       })}
     >
       <Tabs.Screen name="home" options={{ title: 'Trang chủ' }} />
       <Tabs.Screen name="profile_patient" options={{ title: 'Cá nhân' }} />
+      {/* Ẩn file profile.jsx khỏi tab bar */}
+      <Tabs.Screen name="profile" options={{ href: null }} />
     </Tabs>
   );
 }

@@ -86,7 +86,7 @@ const DoctorDashboard = () => {
       </View>
 
       {/* Quick Stats */}
-      <View className="flex-row justify-between p-4">
+      {/* <View className="flex-row justify-between p-4">
         <View className="bg-white rounded-lg p-4 flex-1 mr-2 shadow-sm">
           <Text className="text-2xl font-bold text-blue-500">12</Text>
           <Text className="text-gray-600 text-sm">Cuộc hẹn hôm nay</Text>
@@ -95,12 +95,12 @@ const DoctorDashboard = () => {
           <Text className="text-2xl font-bold text-green-500">35</Text>
           <Text className="text-gray-600 text-sm">Giờ làm tuần này</Text>
         </View>
-      </View>
+      </View> */}
 
       {/* Main Features */}
       <View className="p-4">
-        <Text className="text-lg font-bold text-gray-800 mb-4">Chức năng chính</Text>
-        
+        {/* <Text className="text-lg font-bold text-gray-800 mb-4">Chức năng chính</Text>
+         */}
         {/* Weekly Schedule */}
         <TouchableOpacity 
           className="bg-blue-500 rounded-xl p-6 mb-4 shadow-lg"

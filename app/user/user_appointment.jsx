@@ -2,14 +2,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { useCallback, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    Image,
-    RefreshControl,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Image,
+  RefreshControl,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native";
 import { getAppointmentPatient } from "../../services/user/getAppointmentPatient";
 import useAuthStore from "../../stores/authStore";
@@ -42,7 +42,11 @@ const UserAppointment = () => {
       const response = await getAppointmentPatient(user.id);
       
       if (response?.data?.data) {
-        setAppointmentData(response.data.data.data);
+        // Sắp xếp cuộc hẹn theo thời gian (gần nhất lên đầu)
+        const sortedData = response.data.data.data.sort((a, b) => {
+          return new Date(a.appointmentTime) - new Date(b.appointmentTime);
+        });
+        setAppointmentData(sortedData);
       } else {
         setAppointmentData([]);
       }
@@ -109,12 +113,23 @@ const UserAppointment = () => {
 
   const formatDateTime = (dateString) => {
     const date = new Date(dateString);
+    
+    // Format ngày theo YYYY-MM-DD (UTC)
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day}`;
+    
+    // Format giờ theo HH:mm:ss (UTC)
+    const hours = String(date.getUTCHours()).padStart(2, '0');
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+    const formattedTime = `${hours}:${minutes}:${seconds}`;
+    
     return {
-      date: date.toLocaleDateString('vi-VN'),
-      time: date.toLocaleTimeString('vi-VN', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      })
+      date: formattedDate,
+      time: formattedTime,
+      fullDateTime: `${formattedDate} ${formattedTime}`
     };
   };
 
@@ -122,7 +137,7 @@ const UserAppointment = () => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
       currency: 'VND'
-    }).format(price * 1000); // Assuming price is in thousands
+    }).format(price); // Bỏ * 1000 vì price từ API đã đúng
   };
 
 //   const handleJoinMeeting = async (meetingUrl) => {
@@ -144,11 +159,37 @@ const UserAppointment = () => {
 //     }
 //   };
 
-  const renderAppointmentItem = ({ item }) => {
+  const renderAppointmentItem = ({ item, index }) => {
     const { date, time } = formatDateTime(item.appointmentTime);
     
+    // Kiểm tra xem có phải cuộc hẹn sắp tới không
+    const now = new Date();
+    const appointmentTime = new Date(item.appointmentTime);
+    const isUpcoming = appointmentTime > now;
+    const isNextAppointment = index === 0 && isUpcoming;
+    
     return (
-      <View className="bg-white rounded-xl p-4 mb-4 shadow-lg">
+      <View 
+        className={`rounded-xl p-4 mb-4 shadow-lg ${
+          isNextAppointment ? 'bg-blue-50 border-2 border-blue-400' : 'bg-white'
+        }`}
+        style={isNextAppointment ? {
+          shadowColor: '#3B82F6',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: 8,
+        } : {}}
+      >
+        {/* Badge cho cuộc hẹn sắp tới */}
+        {isNextAppointment && (
+          <View className="flex-row items-center mb-3">
+            <View className="bg-blue-500 px-3 py-2 rounded-full flex-row items-center">
+              <Ionicons name="time" size={14} color="white" />
+              <Text className="text-white text-xs font-bold ml-2">🔥 CUỘC HẸN SẮP TỚI</Text>
+            </View>
+          </View>
+        )}
         {/* Header */}
         <View className="flex-row justify-between items-start mb-4">
           <View className="flex-row items-center gap-2">
@@ -209,13 +250,33 @@ const UserAppointment = () => {
 
         {/* Appointment Details */}
         <View className="mb-4">
-          <View className="flex-row items-center mb-2">
-            <Ionicons name="calendar" size={16} color="#666" />
-            <Text className="text-sm text-gray-800 ml-2">{date}</Text>
+          <View className={`flex-row items-center mb-2 p-2 rounded-lg ${
+            isNextAppointment ? 'bg-white border border-blue-300' : ''
+          }`}>
+            <Ionicons 
+              name="calendar" 
+              size={16} 
+              color={isNextAppointment ? "#2563EB" : "#666"} 
+            />
+            <Text className={`text-sm ml-2 ${
+              isNextAppointment ? 'text-blue-700 font-bold' : 'text-gray-800'
+            }`}>
+              {date}
+            </Text>
           </View>
-          <View className="flex-row items-center mb-2">
-            <Ionicons name="time" size={16} color="#666" />
-            <Text className="text-sm text-gray-800 ml-2">{time}</Text>
+          <View className={`flex-row items-center mb-2 p-2 rounded-lg ${
+            isNextAppointment ? 'bg-white border border-blue-300' : ''
+          }`}>
+            <Ionicons 
+              name="time" 
+              size={16} 
+              color={isNextAppointment ? "#2563EB" : "#666"} 
+            />
+            <Text className={`text-sm ml-2 ${
+              isNextAppointment ? 'text-blue-700 font-bold' : 'text-gray-800'
+            }`}>
+              {time}
+            </Text>
           </View>
           {item.notes && (
             <View className="flex-row items-center mb-2">
@@ -284,6 +345,25 @@ const UserAppointment = () => {
         <Text className="text-sm text-gray-600">
           {appointmentData.length} cuộc hẹn
         </Text>
+        
+        {/* Hiển thị thông tin cuộc hẹn sắp tới */}
+        {appointmentData.length > 0 && (() => {
+          const nextAppointment = appointmentData.find(apt => new Date(apt.appointmentTime) > new Date());
+          if (nextAppointment) {
+            const { fullDateTime } = formatDateTime(nextAppointment.appointmentTime);
+            return (
+              <View className="mt-3 bg-blue-50 px-4 py-3 rounded-lg border border-blue-200">
+                <View className="flex-row items-center">
+                  <Ionicons name="alarm" size={16} color="#2563EB" />
+                  <Text className="text-blue-700 text-sm font-semibold ml-2">
+                    Cuộc hẹn tiếp theo: {fullDateTime}
+                  </Text>
+                </View>
+              </View>
+            );
+          }
+          return null;
+        })()}
       </View>
 
       <FlatList

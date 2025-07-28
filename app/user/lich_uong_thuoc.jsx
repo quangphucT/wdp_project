@@ -12,7 +12,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { getPatientMedicalRecordApi } from "../../services/user/getPatientMedicalRecord";
+import { getPatientMedicalActiveApi } from "../../services/user/getPatientMedicalActive";
 
 const LichUongThuoc = () => {
   const [treatments, setTreatments] = useState([]);
@@ -38,12 +38,13 @@ const LichUongThuoc = () => {
         throw new Error('Không tìm thấy thông tin người dùng');
       }
 
-      const response = await getPatientMedicalRecordApi(patientId);
+      const response = await getPatientMedicalActiveApi(patientId);
     
-      
-    
-     
-        setTreatments(response.data.data.data);
+      if (response?.data?.data) {
+        setTreatments(response.data.data);
+      } else {
+        setTreatments([]);
+      }
     
     } catch (err) {
       console.error('Error fetching treatment data:', err);
@@ -68,60 +69,132 @@ const LichUongThuoc = () => {
   };
 
   const renderTreatmentItem = ({ item }) => {
+    // Tính toán trạng thái và màu sắc
+    const getStatusInfo = (status) => {
+      switch (status) {
+        case 'upcoming':
+          return { text: 'Sắp bắt đầu', color: 'bg-orange-100 text-orange-800', icon: 'time-outline' };
+        case 'active':
+          return { text: 'Đang điều trị', color: 'bg-green-100 text-green-800', icon: 'checkmark-circle-outline' };
+        case 'completed':
+          return { text: 'Hoàn thành', color: 'bg-blue-100 text-blue-800', icon: 'checkmark-done-outline' };
+        default:
+          return { text: 'Không xác định', color: 'bg-gray-100 text-gray-800', icon: 'help-outline' };
+      }
+    };
+
+    const statusInfo = getStatusInfo(item.treatmentStatus);
+
     return (
       <View className="bg-white mx-4 mb-4 rounded-xl p-4 shadow-sm">
-        {/* Header với ID và Protocol */}
+        {/* Header với Protocol và Status */}
         <View className="mb-3">
-          <Text className="text-lg font-bold text-gray-800 mb-1">
-            Treatment ID: {item.id}
-          </Text>
-          {item.protocol && (
-            <Text className="text-base font-semibold text-blue-600">
-              Protocol: {item.protocol.name}
+          <View className="flex-row justify-between items-start mb-2">
+            {item.protocol && (
+              <Text className="text-lg font-bold text-gray-800 flex-1">
+                {item.protocol.name}
+              </Text>
+            )}
+            <View className={`px-3 py-1 rounded-full flex-row items-center ${statusInfo.color}`}>
+              <Ionicons name={statusInfo.icon} size={12} color="currentColor" />
+              <Text className="text-xs font-medium ml-1">{statusInfo.text}</Text>
+            </View>
+          </View>
+          
+          {item.protocol?.description && (
+            <Text className="text-sm text-gray-600 mb-2">
+              {item.protocol.description}
+            </Text>
+          )}
+          
+          {item.protocol?.targetDisease && (
+            <Text className="text-sm text-blue-600 font-medium">
+              🎯 Mục tiêu: {item.protocol.targetDisease}
             </Text>
           )}
         </View>
 
-        {/* Ngày bắt đầu và kết thúc */}
+        {/* Thông tin thời gian */}
         <View className="bg-gray-50 p-3 rounded-lg mb-3">
           <View className="flex-row justify-between items-center mb-2">
             <Text className="text-sm text-gray-600">Ngày bắt đầu:</Text>
             <Text className="text-sm font-medium text-gray-800">
-              {new Date(item.startDate).toLocaleDateString('vi-VN')}
+              {new Date(item.startDate).toLocaleDateString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit', 
+                year: 'numeric'
+              })}
             </Text>
           </View>
-          <View className="flex-row justify-between items-center">
+          {/* <View className="flex-row justify-between items-center mb-2">
             <Text className="text-sm text-gray-600">Ngày kết thúc:</Text>
             <Text className="text-sm font-medium text-gray-800">
-              {new Date(item.endDate).toLocaleDateString('vi-VN')}
+              {new Date(item.endDate).toLocaleDateString('vi-VN', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+              })}
             </Text>
-          </View>
+          </View> */}
+          
+          {/* Debug thông tin ngày */}
+         
+          
+          {/* Hiển thị số ngày còn lại */}
+          {/* {item.daysRemaining > 0 && (
+            <View className="flex-row justify-between items-center">
+              <Text className="text-sm text-gray-600">Số ngày còn lại:</Text>
+              <Text className="text-sm font-bold text-orange-600">
+                {item.daysRemaining} ngày
+              </Text>
+            </View>
+          )} */}
         </View>
 
         {/* Protocol medicines */}
         {item.protocol?.medicines && item.protocol.medicines.length > 0 && (
-          <View>
+          <View className="mb-3">
             <Text className="text-sm font-semibold text-gray-700 mb-2">
-              Thuốc trong protocol ({item.protocol.medicines.length} loại):
+              💊 Thuốc trong protocol ({item.protocol.medicines.length} loại):
             </Text>
             {item.protocol.medicines.map((protocolMedicine, index) => (
               <View key={index} className="bg-blue-50 p-3 rounded-lg mb-2">
-                <Text className="text-sm font-medium text-gray-800">
-                  {protocolMedicine.medicine?.name || 'Không có tên'}
-                </Text>
-                {protocolMedicine.dosage && (
-                  <Text className="text-xs text-gray-600">
-                    Liều lượng: {protocolMedicine.dosage}
+                <View className="flex-row justify-between items-start mb-1">
+                  <Text className="text-sm font-medium text-gray-800 flex-1">
+                    {protocolMedicine.medicine?.name || 'Không có tên'}
+                  </Text>
+                  <Text className="text-xs text-gray-500 ml-2">
+                    {protocolMedicine.medicine?.dose}
+                  </Text>
+                </View>
+                
+                {protocolMedicine.medicine?.description && (
+                  <Text className="text-xs text-gray-600 mb-1">
+                    {protocolMedicine.medicine.description}
                   </Text>
                 )}
-                {protocolMedicine.schedule && (
-                  <Text className="text-xs text-gray-600">
-                    Lịch: {protocolMedicine.schedule}
-                  </Text>
-                )}
+                
+                <View className="flex-row flex-wrap gap-2">
+                  {protocolMedicine.dosage && (
+                    <Text className="text-xs bg-white px-2 py-1 rounded text-gray-600">
+                      💊 {protocolMedicine.dosage}
+                    </Text>
+                  )}
+                  {protocolMedicine.schedule && (
+                    <Text className="text-xs bg-white px-2 py-1 rounded text-gray-600">
+                      ⏰ {protocolMedicine.schedule}
+                    </Text>
+                  )}
+                  {protocolMedicine.durationValue && (
+                    <Text className="text-xs bg-white px-2 py-1 rounded text-gray-600">
+                      📅 {protocolMedicine.durationValue} {protocolMedicine.durationUnit?.toLowerCase()}
+                    </Text>
+                  )}
+                </View>
+                
                 {protocolMedicine.notes && (
-                  <Text className="text-xs text-gray-600">
-                    Ghi chú: {protocolMedicine.notes}
+                  <Text className="text-xs text-gray-600 mt-2 italic">
+                    📝 {protocolMedicine.notes}
                   </Text>
                 )}
               </View>
@@ -129,14 +202,59 @@ const LichUongThuoc = () => {
           </View>
         )}
 
-        {/* Doctor info */}
-        {item.doctor?.user?.name && (
-          <View className="mt-2 pt-2 border-t border-gray-200">
-            <Text className="text-xs text-gray-500">
-              Bác sĩ: {item.doctor.user.name}
+        {/* Custom Medications */}
+        {item.customMedications && item.customMedications.length > 0 && (
+          <View className="mb-3">
+            <Text className="text-sm font-semibold text-gray-700 mb-2">
+              🏥 Thuốc bổ sung ({item.customMedications.length} loại):
             </Text>
+            {item.customMedications.map((customMed, index) => (
+              <View key={index} className="bg-purple-50 p-3 rounded-lg mb-2">
+                <Text className="text-sm font-medium text-gray-800">
+                  {customMed.name}
+                </Text>
+                {customMed.dosage && (
+                  <Text className="text-xs text-gray-600">
+                    Liều lượng: {customMed.dosage}
+                  </Text>
+                )}
+                {customMed.instructions && (
+                  <Text className="text-xs text-gray-600">
+                    Hướng dẫn: {customMed.instructions}
+                  </Text>
+                )}
+              </View>
+            ))}
           </View>
         )}
+
+        {/* Notes */}
+        {item.notes && (
+          <View className="bg-yellow-50 p-3 rounded-lg mb-3">
+            <Text className="text-sm font-medium text-gray-800 mb-1">📋 Ghi chú:</Text>
+            <Text className="text-sm text-gray-600">{item.notes}</Text>
+          </View>
+        )}
+
+        {/* Doctor info */}
+        <View className="flex-row justify-between items-center pt-3 border-t border-gray-200">
+          <View>
+            <Text className="text-xs text-gray-500">
+              👨‍⚕️ Bác sĩ: {item.doctor?.user?.name || 'Chưa có thông tin'}
+            </Text>
+            {item.doctor?.specialization && (
+              <Text className="text-xs text-gray-500">
+                🏥 Chuyên khoa: {item.doctor.specialization}
+              </Text>
+            )}
+          </View>
+          
+          {item.total > 0 && (
+            <Text className="text-sm font-bold text-green-600">
+              💰 {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.total)}
+            </Text>
+          )}
+        </View>
       </View>
     );
   };
@@ -178,12 +296,47 @@ const LichUongThuoc = () => {
     <View className="flex-1 bg-gray-50">
       {/* Header */}
       <View className="bg-white px-5 py-6 border-b border-gray-200">
-        <Text className="text-2xl font-bold text-gray-800 mb-1">Thông tin điều trị</Text>
+        <Text className="text-2xl font-bold text-gray-800 mb-1">Điều trị đang hoạt động</Text>
         <Text className="text-sm text-gray-600">
-          Tổng số: {treatments.length} liệu trình
+          Tổng số: {treatments.length} liệu trình đang theo dõi
         </Text>
         
-        
+        {/* Thống kê nhanh */}
+        {treatments.length > 0 && (
+          <View className="flex-row mt-3 space-x-3">
+            {(() => {
+              const upcoming = treatments.filter(t => t.treatmentStatus === 'upcoming').length;
+              const active = treatments.filter(t => t.treatmentStatus === 'active').length;
+              const completed = treatments.filter(t => t.treatmentStatus === 'completed').length;
+              
+              return (
+                <>
+                  {upcoming > 0 && (
+                    <View className="bg-orange-100 px-2 py-1 rounded-lg">
+                      <Text className="text-xs text-orange-800 font-medium">
+                        {upcoming} sắp tới
+                      </Text>
+                    </View>
+                  )}
+                  {active > 0 && (
+                    <View className="bg-green-100 px-2 py-1 rounded-lg">
+                      <Text className="text-xs text-green-800 font-medium">
+                        {active} đang hoạt động
+                      </Text>
+                    </View>
+                  )}
+                  {completed > 0 && (
+                    <View className="bg-blue-100 px-2 py-1 rounded-lg">
+                      <Text className="text-xs text-blue-800 font-medium">
+                        {completed} hoàn thành
+                      </Text>
+                    </View>
+                  )}
+                </>
+              );
+            })()}
+          </View>
+        )}
       </View>
 
       {/* Treatment List */}
