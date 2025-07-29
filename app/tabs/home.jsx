@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { useEffect } from "react";
 import {
   ActivityIndicator,
+  Alert,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -38,7 +39,23 @@ const HomeScreen = () => {
   }
 
   const handleLogout = () => {
-    logout(router);
+    Alert.alert(
+      "Xác nhận đăng xuất",
+      "Bạn có chắc chắn muốn đăng xuất?",
+      [
+        {
+          text: "Hủy",
+          style: "cancel"
+        },
+        {
+          text: "Đăng xuất", 
+          style: "destructive",
+          onPress: () => {
+            logout(router);
+          }
+        }
+      ]
+    );
   };
 
   // Lấy tên và chữ cái đầu từ thông tin user
@@ -46,65 +63,129 @@ const HomeScreen = () => {
   const userInitial = user?.name?.[0] || 'U';
 
   return (
-    <ScrollView className="flex-1 bg-slate-50 mt-[20px]">
-      {/* Greeting */}
-      <View className="flex-row items-center p-4">
-        <View className="w-12 h-12 rounded-full bg-blue-500 justify-center items-center mr-3">
-          <Text className="text-white text-lg font-bold">{userInitial}</Text>
-        </View>
-        <View className="flex-1">
-          <Text className="text-base font-bold text-gray-800">Xin chào, {firstName}</Text>
-          <Text className="text-xs text-gray-500">Chúc bạn một ngày tốt lành</Text>
-        </View>
-        <TouchableOpacity onPress={handleLogout} className="px-3 py-1 bg-red-50 rounded-full">
-          <Text className="text-red-500 text-sm">Đăng xuất</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Features Grid */}
-      <View className="flex-row flex-wrap justify-between px-3 mt-2">
-        {features.map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            className={`w-[47%] rounded-xl p-4 mb-3 ${item.bgColor}`}
-            onPress={() => {
-              const route = item.route;
-              if (route) {
-                router.push(route);
-              }
-            }}
+    <ScrollView className="flex-1 bg-gray-50">
+      {/* Header */}
+      <View className="bg-blue-500 p-6 pt-16 pb-8 shadow-lg">
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center">
+            <View className="w-16 h-16 rounded-2xl bg-white/20 justify-center items-center mr-4 border border-white/30">
+              <Text className="text-white text-2xl font-bold">{userInitial}</Text>
+            </View>
+            <View>
+              <Text className="text-white text-2xl font-bold">Xin chào, {firstName}</Text>
+              <Text className="text-white/90 text-sm">{user?.email}</Text>
+              <View className="flex-row items-center mt-2">
+                <View className="w-2 h-2 bg-green-300 rounded-full mr-2" />
+                <Text className="text-green-100 text-xs font-medium">Đang hoạt động</Text>
+              </View>
+            </View>
+          </View>
+          <TouchableOpacity 
+            onPress={handleLogout} 
+            className="px-4 py-3 bg-red-500 rounded-xl shadow-md"
           >
-            <Text className="text-2xl text-white">{item.icon}</Text>
-            <Text className="text-sm font-semibold text-gray-900 mt-2">{item.title}</Text>
-            <Text className="text-xs text-gray-500">{item.desc}</Text>
+            <Text className="text-white text-sm font-medium">Đăng xuất</Text>
           </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Today */}
-      {/* <View className="bg-white mx-3 my-3 rounded-xl p-4 shadow-sm">
-        <Text className="text-base font-bold text-blue-500 mb-3">Hôm nay</Text>
-        <View className="mb-2">
-          <Text className="font-semibold text-sm">💊 Thuốc cần uống</Text>
-          <Text className="text-xs text-gray-600">3 loại thuốc vào buổi sáng</Text>
-        </View>
-        <View className="mb-2">
-          <Text className="font-semibold text-sm">📅 Lịch tái khám</Text>
-          <Text className="text-xs text-gray-600">15:00 - Bác sĩ Nguyễn Văn A</Text>
         </View>
       </View>
 
-      {/* News */}
-      <View className="bg-white mx-3 my-3 rounded-xl p-4 shadow-sm">
-        <Text className="text-base font-bold text-blue-500 mb-3">Tin tức mới nhất</Text>
-        <View className="flex-row items-center gap-2">
-          <View className="w-20 h-15 rounded-lg bg-gray-300" />
-          <View>
-            <Text className="text-sm font-semibold text-gray-800">Cách phòng ngừa bệnh mùa hè</Text>
-            <Text className="text-xs text-gray-500">Các biện pháp bảo vệ sức khỏe</Text>
+      {/* Welcome Card */}
+      <View className="px-6 -mt-4 mb-6">
+        <View className="bg-white rounded-3xl p-6 border border-blue-100 shadow-lg">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-1">
+              <Text className="text-gray-500 text-sm mb-1">Chào mừng trở lại</Text>
+              <Text className="text-gray-800 text-xl font-bold mb-1">
+                Chúc bạn một ngày tốt lành!
+              </Text>
+              <Text className="text-gray-600 text-sm">
+                Hãy theo dõi sức khỏe và tuân thủ phác đồ điều trị
+              </Text>
+            </View>
+            <View className="w-16 h-16 bg-blue-500 rounded-3xl justify-center items-center ml-4">
+              <Text className="text-white text-2xl">🌟</Text>
+            </View>
           </View>
         </View>
       </View>
+
+      {/* Services Grid */}
+      <View className="px-6 py-4">
+        <Text className="text-xl font-bold text-gray-800 mb-6">Dịch vụ của chúng tôi</Text>
+        <View className="flex-row flex-wrap justify-between">
+          {features.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              className="w-[47%] bg-white rounded-3xl p-6 mb-4 border border-gray-100 shadow-lg"
+              onPress={() => {
+                const route = item.route;
+                if (route) {
+                  router.push(route);
+                }
+              }}
+            >
+              <View className={`w-16 h-16 ${item.bgColor} rounded-2xl justify-center items-center mb-4`}>
+                <Text className="text-2xl">{item.icon}</Text>
+              </View>
+              <Text className="text-gray-800 text-base font-semibold mb-2">{item.title}</Text>
+              <Text className="text-gray-600 text-xs leading-4">{item.desc}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      {/* Today's Schedule */}
+      {/* <View className="px-6 py-4">
+        <Text className="text-xl font-bold text-gray-800 mb-6">Lịch trình hôm nay</Text>
+        
+        <View className="bg-white rounded-3xl p-6 border border-blue-100 shadow-lg mb-4">
+          <View className="flex-row items-center">
+            <View className="w-14 h-14 bg-blue-500 rounded-2xl justify-center items-center mr-4">
+              <Text className="text-white text-xl">💊</Text>
+            </View>
+            <View className="flex-1">
+              <Text className="text-gray-800 text-lg font-bold mb-1">Thuốc cần uống</Text>
+              <Text className="text-gray-600 text-sm mb-2">3 loại thuốc vào buổi sáng</Text>
+              <View className="flex-row items-center">
+                <View className="bg-blue-100 px-3 py-1 rounded-full mr-2">
+                  <Text className="text-blue-700 text-xs font-medium">08:00</Text>
+                </View>
+                <View className="bg-blue-100 px-3 py-1 rounded-full">
+                  <Text className="text-blue-700 text-xs font-medium">Sáng</Text>
+                </View>
+              </View>
+            </View>
+            <View className="w-10 h-10 bg-blue-100 rounded-xl justify-center items-center">
+              <Text className="text-blue-600 text-lg font-bold">→</Text>
+            </View>
+          </View>
+        </View>
+
+        <View className="bg-white rounded-3xl p-6 border border-emerald-100 shadow-lg">
+          <View className="flex-row items-center">
+            <View className="w-14 h-14 bg-emerald-500 rounded-2xl justify-center items-center mr-4">
+              <Text className="text-white text-xl">📅</Text>
+            </View>
+            <View className="flex-1">
+              <Text className="text-gray-800 text-lg font-bold mb-1">Lịch tái khám</Text>
+              <Text className="text-gray-600 text-sm mb-2">15:00 - Bác sĩ Nguyễn Văn A</Text>
+              <View className="flex-row items-center">
+                <View className="bg-emerald-100 px-3 py-1 rounded-full mr-2">
+                  <Text className="text-emerald-700 text-xs font-medium">15:00</Text>
+                </View>
+                <View className="bg-gray-100 px-3 py-1 rounded-full">
+                  <Text className="text-gray-600 text-xs font-medium">Hôm nay</Text>
+                </View>
+              </View>
+            </View>
+            <View className="w-10 h-10 bg-emerald-100 rounded-xl justify-center items-center">
+              <Text className="text-emerald-600 text-lg font-bold">→</Text>
+            </View>
+          </View>
+        </View>
+      </View> */}
+
+     
     </ScrollView>
   );
 };

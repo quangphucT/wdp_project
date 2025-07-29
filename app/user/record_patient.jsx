@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as SecureStore from "expo-secure-store";
 import { useEffect, useState } from "react";
-import { Alert, Image, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Image, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getPatientMedicalRecordApi } from "../../services/user/getPatientMedicalRecord";
+import { useRouter } from "expo-router";
 
 const PatientRecordScreen = () => {
   const [patientMedicalRecord, setPatientMedicalRecord] = useState([]);
@@ -104,7 +105,7 @@ const PatientRecordScreen = () => {
     
     return medications.length > 0 ? medications.join('\n') : 'Chưa có phác đồ điều trị';
   };
-
+  const router = useRouter();
   return (
     <ScrollView 
       style={styles.container}
@@ -113,7 +114,15 @@ const PatientRecordScreen = () => {
       }
     >
       {/* Header */}
+       <View className="flex-row items-center mb-3 mt-14">
+         <TouchableOpacity
+                  onPress={() => router.back()}
+                  className="mr-3 p-2 -ml-2"
+                >
+                  <Ionicons name="arrow-back" size={24} color="#374151" />
+                </TouchableOpacity>
       <Text style={styles.title}>Hồ sơ bệnh án</Text>
+       </View>
       <Text style={styles.subtitle}>Chi tiết & lịch sử khám</Text>
 
       {isLoading ? (

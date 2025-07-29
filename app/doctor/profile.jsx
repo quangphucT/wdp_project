@@ -1,28 +1,29 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from 'expo-image-picker';
+import { useRouter } from "expo-router";
 import * as SecureStore from 'expo-secure-store';
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Modal,
-  Platform,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Image,
+    Modal,
+    Platform,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { getProfileUserApi } from "../../services/auth/getProfileUserApi";
 import { updateProfileUserApi } from "../../services/auth/updateProfileUserApi";
 import { deleteAvatarFromFirebase, uploadAvatarToFirebase } from "../../services/firebase/avatarService";
 import useAuthStore from "../../stores/authStore";
-import { useRouter } from "expo-router";
 
-const ProfilePatient = () => {
+const DoctorProfile = () => {
+  const router = useRouter();
   const { user } = useAuthStore();
   const [dataProfile, setDataProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -35,7 +36,7 @@ const ProfilePatient = () => {
     email: "",
     avatar: "",
   });
-  const router = useRouter();
+
   useEffect(() => {
     fetchProfile();
   }, []);
@@ -49,7 +50,7 @@ const ProfilePatient = () => {
       }
       
       const response = await getProfileUserApi();
-      console.log("Profile response:", response.data);
+      console.log("Doctor profile response:", response.data);
       
       if (response.data && response.data.data) {
         setDataProfile(response.data.data);
@@ -61,7 +62,7 @@ const ProfilePatient = () => {
         });
       }
     } catch (error) {
-      console.error("Error fetching profile:", error);
+      console.error("Error fetching doctor profile:", error);
       Alert.alert("Lỗi", "Không thể tải thông tin profile");
     } finally {
       setIsLoading(false);
@@ -74,14 +75,24 @@ const ProfilePatient = () => {
   };
 
   const requestPermissions = async () => {
-    if (Platform.OS !== 'web') {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Thông báo', 'Cần quyền truy cập thư viện ảnh để thay đổi avatar');
-        return false;
+    try {
+      if (Platform.OS !== 'web') {
+        // Request media library permission
+        const { status: mediaStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (mediaStatus !== 'granted') {
+          Alert.alert('Thông báo', 'Cần quyền truy cập thư viện ảnh để thay đổi avatar');
+          return false;
+        }
+
+        // Also request camera permission for completeness
+        const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+        console.log('Camera permission status:', cameraStatus);
       }
+      return true;
+    } catch (error) {
+      console.error('Error requesting permissions:', error);
+      return false;
     }
-    return true;
   };
 
   const handleChooseAvatar = async () => {
@@ -89,40 +100,53 @@ const ProfilePatient = () => {
     if (!hasPermission) return;
 
     Alert.alert(
-      'Chọn ảnh',
-      'Bạn muốn chọn ảnh từ đâu?',
+      'Chọn ảnh đại diện',
+      'Lưu ý: Nếu bạn sử dụng Google Photos, hãy đảm bảo ảnh đã được tải về thiết bị',
       [
         {
           text: 'Hủy',
           style: 'cancel',
         },
         {
-          text: 'Thư viện',
+          text: 'Thư viện ảnh',
           onPress: () => pickImageFromLibrary(),
         },
         {
-          text: 'Chụp ảnh',
+          text: 'Chụp ảnh mới',
           onPress: () => takePhoto(),
         },
-      ]
+      ],
+      { cancelable: true }
     );
   };
 
   const pickImageFromLibrary = async () => {
     try {
+      console.log('Starting image picker...');
+      
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
+        // Add these options to improve compatibility
+        allowsMultipleSelection: false,
+        selectionLimit: 1,
+        // This helps with Google Photos
+        presentationStyle: ImagePicker.UIImagePickerPresentationStyle.FullScreen,
       });
 
-      if (!result.canceled && result.assets[0]) {
+      console.log('Image picker result:', result);
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        console.log('Selected image URI:', result.assets[0].uri);
         await handleAvatarUpload(result.assets[0]);
+      } else {
+        console.log('Image selection was canceled or no assets found');
       }
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('Lỗi', 'Không thể chọn ảnh');
+      Alert.alert('Lỗi', `Không thể chọn ảnh: ${error.message}`);
     }
   };
 
@@ -153,10 +177,20 @@ const ProfilePatient = () => {
     try {
       setIsUploadingAvatar(true);
       
-      // Get user ID from current user state or dataProfile
+      console.log('Starting avatar upload with asset:', imageAsset);
+      
+      // Validate image asset
+      if (!imageAsset.uri) {
+        throw new Error('Không có URI ảnh hợp lệ');
+      }
+
+      // Check file size (optional)
+      if (imageAsset.fileSize && imageAsset.fileSize > 10 * 1024 * 1024) { // 10MB
+        throw new Error('Kích thước ảnh quá lớn (tối đa 10MB)');
+      }
+      
       let userId = user?.id || dataProfile?.id;
       
-      // If not available, try to get from SecureStore
       if (!userId) {
         try {
           const storedUserId = await SecureStore.getItemAsync('userId');
@@ -171,21 +205,21 @@ const ProfilePatient = () => {
         return;
       }
 
-      // Upload to Firebase and get download URL
+      console.log('Uploading to Firebase with userId:', userId);
       const avatarUrl = await uploadAvatarToFirebase(imageAsset, userId);
+      console.log('Firebase upload successful, URL:', avatarUrl);
 
-      // Delete old avatar if exists
       if (dataProfile?.avatar) {
+        console.log('Deleting old avatar:', dataProfile.avatar);
         await deleteAvatarFromFirebase(dataProfile.avatar);
       }
 
-      // Update profile with new avatar URL
+      console.log('Updating profile with new avatar URL');
       const response = await updateProfileUserApi({
         avatar: avatarUrl
       });
       
       if (response.data) {
-        // Update local state
         setDataProfile(prev => ({
           ...prev,
           avatar: avatarUrl,
@@ -215,7 +249,6 @@ const ProfilePatient = () => {
     try {
       setIsLoading(true);
       
-      // Validate input
       if (!editForm.name.trim()) {
         Alert.alert("Lỗi", "Vui lòng nhập họ và tên");
         return;
@@ -227,7 +260,6 @@ const ProfilePatient = () => {
       });
       
       if (response.data) {
-        // Update local state with new data
         setDataProfile(prev => ({
           ...prev,
           name: editForm.name.trim(),
@@ -274,10 +306,19 @@ const ProfilePatient = () => {
     }
   };
 
+  const getRoleText = (role) => {
+    switch (role) {
+      case 'DOCTOR': return 'Bác sĩ';
+      case 'PATIENT': return 'Bệnh nhân';
+      case 'ADMIN': return 'Quản trị viên';
+      default: return 'Không xác định';
+    }
+  };
+
   if (isLoading && !dataProfile) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2196F3" />
+        <ActivityIndicator size="large" color="#059669" />
         <Text style={styles.loadingText}>Đang tải thông tin...</Text>
       </View>
     );
@@ -295,7 +336,6 @@ const ProfilePatient = () => {
     );
   }
 
-
   return (
     <ScrollView 
       style={styles.container} 
@@ -304,32 +344,22 @@ const ProfilePatient = () => {
         <RefreshControl
           refreshing={isRefreshing}
           onRefresh={onRefresh}
-          colors={['#2196F3']}
+          colors={['#059669']}
         />
       }
     >
-      
       {/* Header */}
       <View style={styles.header}>
-         <View className="flex-row items-center mb-3 mt-14">
-                  <TouchableOpacity 
-                    onPress={() => router.back()}
-                    className="mr-3 p-2 -ml-2"
-                  >
-                    <Ionicons name="arrow-back" size={24} color="#374151" />
-                  </TouchableOpacity>
-                  <View className="flex-1">
-                     <Text style={styles.headerTitle}>Thông tin cá nhân</Text>
-                  </View>
-                   <TouchableOpacity
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color="#059669" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Hồ sơ bác sĩ</Text>
+        <TouchableOpacity
           style={styles.editButton}
           onPress={() => setIsEditing(true)}
         >
-          <Ionicons name="create-outline" size={24} color="#2196F3" />
+          <Ionicons name="create-outline" size={24} color="#059669" />
         </TouchableOpacity>
-                </View>
-      
-       
       </View>
 
       {/* Avatar Section */}
@@ -347,7 +377,6 @@ const ProfilePatient = () => {
             </View>
           )}
           
-          {/* Upload overlay */}
           <View style={styles.avatarOverlay}>
             {isUploadingAvatar ? (
               <ActivityIndicator size="small" color="white" />
@@ -358,6 +387,9 @@ const ProfilePatient = () => {
         </TouchableOpacity>
         
         <Text style={styles.name}>{dataProfile.name}</Text>
+        <Text style={styles.roleText}>
+          {getRoleText(dataProfile.role)}
+        </Text>
         <Text style={styles.changeAvatarText}>
           {isUploadingAvatar ? 'Đang upload...' : 'Nhấn để thay đổi ảnh đại diện'}
         </Text>
@@ -396,6 +428,14 @@ const ProfilePatient = () => {
           <Text style={styles.infoValue}>
             {dataProfile.phoneNumber || "Chưa cập nhật"}
           </Text>
+        </View>
+
+        <View style={styles.infoItem}>
+          <View style={styles.infoLabel}>
+            <Ionicons name="shield-outline" size={20} color="#666" />
+            <Text style={styles.labelText}>Vai trò</Text>
+          </View>
+          <Text style={styles.infoValue}>{getRoleText(dataProfile.role)}</Text>
         </View>
 
         <View style={styles.infoItem}>
@@ -516,13 +556,13 @@ const ProfilePatient = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f3f4f6',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f3f4f6',
   },
   loadingText: {
     marginTop: 16,
@@ -533,7 +573,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f3f4f6',
     padding: 20,
   },
   errorText: {
@@ -544,7 +584,7 @@ const styles = StyleSheet.create({
   },
   retryButton: {
     marginTop: 16,
-    backgroundColor: '#2196F3',
+    backgroundColor: '#059669',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
@@ -563,6 +603,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
+  },
+  backButton: {
+    padding: 8,
   },
   headerTitle: {
     fontSize: 20,
@@ -602,7 +645,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#2196F3',
+    backgroundColor: '#059669',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
@@ -613,6 +656,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 4,
+  },
+  roleText: {
+    fontSize: 16,
+    color: '#059669',
+    fontWeight: '600',
+    marginBottom: 8,
   },
   changeAvatarText: {
     fontSize: 14,
@@ -686,7 +735,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     fontSize: 16,
-    color: '#2196F3',
+    color: '#059669',
     fontWeight: '600',
   },
   saveButtonDisabled: {
@@ -753,7 +802,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#2196F3',
+    backgroundColor: '#059669',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
@@ -766,4 +815,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProfilePatient;
+export default DoctorProfile;

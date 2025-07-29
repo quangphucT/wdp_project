@@ -2,6 +2,7 @@
 
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import { router } from "expo-router";
 import * as SecureStore from 'expo-secure-store';
 import { useCallback, useState } from "react";
 import {
@@ -10,6 +11,7 @@ import {
   FlatList,
   RefreshControl,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { getPatientMedicalActiveApi } from "../../services/user/getPatientMedicalActive";
@@ -249,11 +251,11 @@ const LichUongThuoc = () => {
             )}
           </View>
           
-          {item.total > 0 && (
+          {/* {item.total > 0 && (
             <Text className="text-sm font-bold text-green-600">
               💰 {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.total)}
             </Text>
-          )}
+          )} */}
         </View>
       </View>
     );
@@ -293,17 +295,27 @@ const LichUongThuoc = () => {
   console.log('Current treatments state:', treatments);
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View className="flex-1 bg-gray-50 mt-14">
       {/* Header */}
       <View className="bg-white px-5 py-6 border-b border-gray-200">
-        <Text className="text-2xl font-bold text-gray-800 mb-1">Điều trị đang hoạt động</Text>
-        <Text className="text-sm text-gray-600">
+        <View className="flex-row items-center mb-3">
+          <TouchableOpacity 
+            onPress={() => router.back()}
+            className="mr-3 p-2 -ml-2"
+          >
+            <Ionicons name="arrow-back" size={24} color="#374151" />
+          </TouchableOpacity>
+          <View className="flex-1">
+            <Text className="text-2xl font-bold text-gray-800">Lịch uống thuốc đang hoạt động</Text>
+          </View>
+        </View>
+        <Text className="text-sm text-gray-600 ml-10">
           Tổng số: {treatments.length} liệu trình đang theo dõi
         </Text>
         
         {/* Thống kê nhanh */}
         {treatments.length > 0 && (
-          <View className="flex-row mt-3 space-x-3">
+          <View className="flex-row mt-3 ml-10 space-x-3">
             {(() => {
               const upcoming = treatments.filter(t => t.treatmentStatus === 'upcoming').length;
               const active = treatments.filter(t => t.treatmentStatus === 'active').length;

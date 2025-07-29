@@ -145,21 +145,21 @@ const WeeklySchedule = () => {
 
   const getSlotColor = (type) => {
     switch (type) {
-      case 'working': return 'bg-green-100 border-green-300';
-      case 'off': return 'bg-red-100 border-red-300';
-      case 'appointment': return 'bg-blue-100 border-blue-300';
-      case 'meeting': return 'bg-yellow-100 border-yellow-300';
-      case 'surgery': return 'bg-purple-100 border-purple-300';
-      default: return 'bg-gray-100 border-gray-300';
+      case 'working': return 'bg-emerald-100 border-emerald-500';
+      case 'off': return 'bg-red-100 border-red-500';
+      case 'appointment': return 'bg-blue-100 border-blue-500';
+      case 'meeting': return 'bg-amber-100 border-amber-500';
+      case 'surgery': return 'bg-purple-100 border-purple-500';
+      default: return 'bg-gray-100 border-gray-400';
     }
   };
 
   const getSlotTextColor = (type) => {
     switch (type) {
-      case 'working': return 'text-green-700';
+      case 'working': return 'text-emerald-700';
       case 'off': return 'text-red-700';
       case 'appointment': return 'text-blue-700';
-      case 'meeting': return 'text-yellow-700';
+      case 'meeting': return 'text-amber-700';
       case 'surgery': return 'text-purple-700';
       default: return 'text-gray-700';
     }
@@ -171,48 +171,50 @@ const WeeklySchedule = () => {
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-slate-50 justify-center items-center">
-        <ActivityIndicator size="large" color="#3B82F6" />
-        <Text className="mt-4 text-gray-600">Đang tải lịch làm việc...</Text>
+      <View className="flex-1 bg-emerald-50 justify-center items-center">
+        <View className="bg-white rounded-2xl p-6 mx-6 shadow-lg">
+          <ActivityIndicator size="large" color="#10B981" />
+          <Text className="mt-4 text-emerald-700 font-medium text-center">Đang tải lịch làm việc...</Text>
+        </View>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-slate-50">
+    <View className="flex-1 bg-emerald-50">
       {/* Header */}
-      <View className="bg-white border-b border-gray-200 pt-12 pb-4">
+      <View className="bg-emerald-500 pt-12 pb-4 shadow-lg">
         <View className="flex-row items-center justify-between px-4 mb-4">
-          <TouchableOpacity onPress={() => router.back()}>
-            <Text className="text-blue-500 text-lg">← Quay lại</Text>
+          <TouchableOpacity onPress={() => router.back()} className="p-2 rounded-lg bg-emerald-600">
+            <Text className="text-white text-lg font-medium">← Quay lại</Text>
           </TouchableOpacity>
-          <Text className="text-lg font-bold text-gray-800">Lịch làm việc</Text>
+          <Text className="text-xl font-bold text-white">Lịch làm việc</Text>
           <View style={{ width: 80 }} />
         </View>
 
         {/* Week Navigation */}
         <View className="flex-row items-center justify-between px-4">
           <TouchableOpacity 
-            className="p-2 rounded-lg bg-gray-100"
+            className="p-3 rounded-xl bg-emerald-600 border border-emerald-400"
             onPress={() => setCurrentWeek(currentWeek - 1)}
           >
-            <Text className="text-gray-600">‹ Tuần trước</Text>
+            <Text className="text-white font-medium">‹ Tuần trước</Text>
           </TouchableOpacity>
           
-          <View className="items-center">
-            <Text className="font-bold text-gray-800">
+          <View className="items-center bg-emerald-600 px-4 py-2 rounded-xl">
+            <Text className="font-bold text-white text-lg">
               {weekStart?.getDate()}/{weekStart?.getMonth() + 1} - {weekEnd?.getDate()}/{weekEnd?.getMonth() + 1}
             </Text>
-            <Text className="text-sm text-gray-500">
+            <Text className="text-sm text-emerald-100">
               {currentWeek === 0 ? 'Tuần hiện tại' : currentWeek > 0 ? `+${currentWeek} tuần` : `${currentWeek} tuần`}
             </Text>
           </View>
           
           <TouchableOpacity 
-            className="p-2 rounded-lg bg-gray-100"
+            className="p-3 rounded-xl bg-emerald-600 border border-emerald-400"
             onPress={() => setCurrentWeek(currentWeek + 1)}
           >
-            <Text className="text-gray-600">Tuần sau ›</Text>
+            <Text className="text-white font-medium">Tuần sau ›</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -221,14 +223,14 @@ const WeeklySchedule = () => {
       <ScrollView className="flex-1" horizontal showsHorizontalScrollIndicator={false}>
         <View className="flex-1" style={{ minWidth: 900 }}>
           {/* Days Header */}
-          <View className="flex-row bg-white border-b border-gray-200">
-            <View className="w-20 p-3 border-r border-gray-200">
-              <Text className="text-xs font-semibold text-gray-600">Giờ</Text>
+          <View className="flex-row bg-emerald-500 shadow-md">
+            <View className="w-20 p-4 border-r border-emerald-400">
+              <Text className="text-sm font-bold text-white">Giờ</Text>
             </View>
             {weekData.map((day, index) => (
-              <View key={index} className="flex-1 p-3 border-r border-gray-200 min-w-[120px]">
-                <Text className="text-sm font-semibold text-gray-800">{day.dayName}</Text>
-                <Text className="text-xs text-gray-500">{day.date}/{day.month}</Text>
+              <View key={index} className="flex-1 p-4 border-r border-emerald-400 min-w-[120px]">
+                <Text className="text-sm font-bold text-white">{day.dayName}</Text>
+                <Text className="text-xs text-emerald-100 mt-1">{day.date}/{day.month}</Text>
               </View>
             ))}
           </View>
@@ -237,10 +239,10 @@ const WeeklySchedule = () => {
           <ScrollView className="flex-1">
             <View className="flex-row">
               {/* Time Column */}
-              <View className="w-20 border-r border-gray-200">
+              <View className="w-20 bg-gray-50 border-r border-gray-200">
                 {Array.from({ length: 12 }, (_, i) => (
-                  <View key={i} className="h-16 border-b border-gray-100 p-1 justify-center">
-                    <Text className="text-xs text-gray-500">
+                  <View key={i} className="h-16 border-b border-gray-100 p-2 justify-center">
+                    <Text className="text-xs font-medium text-gray-600">
                       {String(7 + i).padStart(2, '0')}:00
                     </Text>
                   </View>
@@ -265,7 +267,7 @@ const WeeklySchedule = () => {
                       return (
                         <TouchableOpacity
                           key={slotIndex}
-                          className={`mx-1 p-2 rounded border-l-4 ${getSlotColor(slot.type)}`}
+                          className={`mx-1 p-2 rounded-lg border-l-4 ${getSlotColor(slot.type)} shadow-sm`}
                           style={{ 
                             position: 'absolute',
                             top: topPosition,
@@ -303,24 +305,24 @@ const WeeklySchedule = () => {
       </ScrollView>
 
       {/* Legend */}
-      <View className="bg-white border-t border-gray-200 p-4">
-        <Text className="text-sm font-semibold text-gray-800 mb-2">Chú thích:</Text>
+      <View className="bg-white border-t border-emerald-100 p-4 shadow-lg">
+        <Text className="text-sm font-bold text-emerald-800 mb-3">Chú thích:</Text>
         <View className="flex-row flex-wrap">
           <View className="flex-row items-center mr-4 mb-2">
-            <View className="w-3 h-3 bg-green-100 border-l-4 border-green-300 mr-2" />
-            <Text className="text-xs text-gray-600">Ca làm việc</Text>
+            <View className="w-4 h-4 bg-emerald-100 border-2 border-emerald-500 rounded mr-2" />
+            <Text className="text-xs text-emerald-700 font-medium">Ca làm việc</Text>
           </View>
           {/* <View className="flex-row items-center mr-4 mb-2">
-            <View className="w-3 h-3 bg-red-100 border-l-4 border-red-300 mr-2" />
-            <Text className="text-xs text-gray-600">Nghỉ phép</Text>
+            <View className="w-4 h-4 bg-red-100 border-2 border-red-500 rounded mr-2" />
+            <Text className="text-xs text-red-700 font-medium">Nghỉ phép</Text>
           </View>
           <View className="flex-row items-center mr-4 mb-2">
-            <View className="w-3 h-3 bg-blue-100 border-l-4 border-blue-300 mr-2" />
-            <Text className="text-xs text-gray-600">Cuộc hẹn</Text>
+            <View className="w-4 h-4 bg-blue-100 border-2 border-blue-500 rounded mr-2" />
+            <Text className="text-xs text-blue-700 font-medium">Cuộc hẹn</Text>
           </View>
           <View className="flex-row items-center mr-4 mb-2">
-            <View className="w-3 h-3 bg-yellow-100 border-l-4 border-yellow-300 mr-2" />
-            <Text className="text-xs text-gray-600">Họp</Text>
+            <View className="w-4 h-4 bg-amber-100 border-2 border-amber-500 rounded mr-2" />
+            <Text className="text-xs text-amber-700 font-medium">Họp</Text>
           </View> */}
         </View>
       </View>

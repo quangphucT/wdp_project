@@ -47,6 +47,15 @@ const BookAppointment = () => {
   // Step 3 states
   const [note, setNote] = useState('');
 
+  // Format tiền tệ VND
+  const formatCurrency = (amount) => {
+    if (!amount) return '0₫';
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(amount);
+  };
+
   // Load patient info từ getProfile API
   useEffect(() => {
     const loadPatientInfo = async () => {
@@ -197,54 +206,14 @@ const BookAppointment = () => {
         appointmentData.doctorId = parseInt(selectedDoctor.id);
       }
       
-      console.log('=== APPOINTMENT BOOKING PAYLOAD ===');
-      console.log('Full payload:', JSON.stringify(appointmentData, null, 2));
-      console.log('Individual fields:');
-      console.log('- userId:', appointmentData.userId, typeof appointmentData.userId);
+     
       if (serviceType !== 'ONLINE') {
         console.log('- doctorId:', appointmentData.doctorId, typeof appointmentData.doctorId);
       }
-      console.log('- serviceId:', appointmentData.serviceId, typeof appointmentData.serviceId);
-      console.log('- appointmentTime:', appointmentData.appointmentTime, typeof appointmentData.appointmentTime);
-      console.log('- isAnonymous:', appointmentData.isAnonymous, typeof appointmentData.isAnonymous);
-      console.log('- type:', appointmentData.type, typeof appointmentData.type);
-      console.log('- notes:', appointmentData.notes, typeof appointmentData.notes);
-      console.log('===================================');
       
-      console.log('=== COMPARISON WITH WORKING PAYLOAD ===');
-      console.log('Working Swagger payload:');
-      console.log('{"userId": 8, "serviceId": 2, "appointmentTime": "2025-07-28T10:30:00.000Z", "isAnonymous": false, "type": "ONLINE", "notes": "test conssultationbnn"}');
-      console.log('App payload:');
-      console.log(JSON.stringify(appointmentData));
-      console.log('Differences check:');
-      console.log('- userId type match:', typeof appointmentData.userId === 'number', 'App:', appointmentData.userId, 'Expected: number');
-      console.log('- serviceId type match:', typeof appointmentData.serviceId === 'number', 'App:', appointmentData.serviceId, 'Expected: number');
-      console.log('- appointmentTime format:', appointmentData.appointmentTime);
-      console.log('- type match:', appointmentData.type === 'ONLINE', 'App:', appointmentData.type, 'Expected: ONLINE');
-      console.log('- isAnonymous match:', appointmentData.isAnonymous === false, 'App:', appointmentData.isAnonymous, 'Expected: false');
-      console.log('- notes type:', typeof appointmentData.notes, 'Value:', appointmentData.notes);
-      console.log('=====================================');
       
-      console.log('Booking appointment with data:', {
-        ...appointmentData,
-        appointmentTimeFormatted: appointmentData.appointmentTime,
-        selectedDate,
-        selectedTimeSlot: selectedTimeSlot.start,
-        patientId: patientInfo.id,
-        doctorId: serviceType !== 'ONLINE' ? selectedDoctor?.id : 'N/A (consultation)',
-        serviceId: selectedService.id,
-        serviceType: serviceDetails?.type,
-        determinedType: serviceType
-      });
+  
       
-      // Gọi API đặt lịch hẹn
-      console.log('Calling bookAppointmentApi...');
-      console.log('API URL:', process.env.EXPO_PUBLIC_API_URL + '/appointments');
-      
-      // Kiểm tra token trước khi gọi API
-      const token = await SecureStore.getItemAsync('accessToken');
-      console.log('Access token exists:', !!token);
-      console.log('Token preview:', token ? token.substring(0, 20) + '...' : 'No token');
       
       const response = await bookAppointmentApi(appointmentData);
       console.log('API Response:', response);
@@ -273,23 +242,7 @@ const BookAppointment = () => {
         );
       }
     } catch (error) {
-      console.error('=== BOOKING ERROR ===');
-      console.error('Full error object:', error);
-      console.error('Error message:', error.message);
-      console.error('Error response:', error.response);
-      console.error('Error response data:', error.response?.data);
-      console.error('Error response status:', error.response?.status);
-      console.error('Error response headers:', error.response?.headers);
-      console.error('Error config:', error.config);
-      console.error('Error request:', error.request);
-      
-      // Log network info
-      console.error('=== NETWORK DEBUG ===');
-      console.error('Request URL:', error.config?.url);
-      console.error('Request method:', error.config?.method);
-      console.error('Request headers:', error.config?.headers);
-      console.error('Request data:', error.config?.data);
-      console.error('====================');
+     
       
       let errorMessage = 'Không thể đặt lịch hẹn. Vui lòng thử lại.';
       
@@ -569,19 +522,30 @@ const BookAppointment = () => {
       {[1, 2, 3].map((step, index) => (
         <View key={step} className="flex-row items-center">
           <View 
-            className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              currentStep >= step ? 'bg-purple-500' : 'bg-gray-300'
+            className={`w-10 h-10 rounded-full flex items-center justify-center border-2 ${
+              currentStep >= step 
+                ? 'bg-blue-600 border-blue-500' 
+                : 'bg-white border-gray-300'
             }`}
+            style={currentStep >= step ? {
+              shadowColor: '#2563EB',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.3,
+              shadowRadius: 4,
+              elevation: 4
+            } : {}}
           >
             <Text className={`text-sm font-bold ${
-              currentStep >= step ? 'text-white' : 'text-gray-600'
+              currentStep >= step ? 'text-white' : 'text-gray-500'
             }`}>
               {step}
             </Text>
           </View>
           {index < 2 && (
-            <View className={`w-8 h-0.5 mx-2 ${
-              currentStep > step ? 'bg-purple-500' : 'bg-gray-300'
+            <View className={`w-8 h-1 mx-2 rounded-full ${
+              currentStep > step 
+                ? 'bg-blue-600' 
+                : 'bg-gray-300'
             }`} />
           )}
         </View>
@@ -590,202 +554,318 @@ const BookAppointment = () => {
   );
 
   const renderPatientInfo = () => (
-    <View className="bg-white mx-4 mb-4 rounded-xl p-4 shadow-sm">
-      <View className="flex-row items-center mb-3">
-        <Ionicons name="person" size={20} color="#8B5CF6" />
-        <Text className="text-lg font-semibold text-gray-800 ml-2">
-          Thông Tin Bệnh Nhân
-        </Text>
+    <View className="mx-6 mb-6 bg-white rounded-3xl p-6 shadow-lg border border-indigo-50">
+      <View className="flex-row items-center mb-6">
+        <View className="bg-indigo-100 p-3 rounded-full mr-4">
+          <Ionicons name="person" size={24} color="#6366F1" />
+        </View>
+        <View className="flex-1">
+          <Text className="text-xl font-bold text-gray-800">
+            Thông Tin Bệnh Nhân
+          </Text>
+          <Text className="text-sm text-indigo-600 font-medium mt-1">
+            Thông tin tài khoản của bạn
+          </Text>
+        </View>
       </View>
       
-      <View className="space-y-3">
-        <View className="flex-row justify-between">
-          <Text className="text-sm text-gray-600 flex-1">Họ và tên</Text>
-          <Text className="text-sm font-medium text-gray-800 flex-2">
-            {patientInfo?.name}
-          </Text>
+      <View className="space-y-4">
+        <View className="bg-indigo-50 rounded-2xl p-4 border border-indigo-200">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center">
+              <Ionicons name="person-circle" size={20} color="#6366F1" />
+              <Text className="text-sm text-gray-600 ml-2 font-medium">Họ và tên</Text>
+            </View>
+            <Text className="text-sm font-bold text-gray-800">
+              {patientInfo?.name}
+            </Text>
+          </View>
         </View>
         
-        <View className="flex-row justify-between">
-          <Text className="text-sm text-gray-600 flex-1">Email</Text>
-          <Text className="text-sm font-medium text-gray-800 flex-2">
-            {patientInfo?.email}
-          </Text>
+        <View className="bg-indigo-50 rounded-2xl p-4 border border-indigo-200">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center">
+              <Ionicons name="mail" size={20} color="#6366F1" />
+              <Text className="text-sm text-gray-600 ml-2 font-medium">Email</Text>
+            </View>
+            <Text className="text-sm font-bold text-gray-800">
+              {patientInfo?.email}
+            </Text>
+          </View>
         </View>
         
-        <View className="flex-row justify-between">
-          <Text className="text-sm text-gray-600 flex-1">Số điện thoại</Text>
-          <Text className="text-sm font-medium text-gray-800 flex-2">
-            {patientInfo?.phone}
-          </Text>
+        <View className="bg-indigo-50 rounded-2xl p-4 border border-indigo-200">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center">
+              <Ionicons name="call" size={20} color="#6366F1" />
+              <Text className="text-sm text-gray-600 ml-2 font-medium">Số điện thoại</Text>
+            </View>
+            <Text className="text-sm font-bold text-gray-800">
+              {patientInfo?.phone}
+            </Text>
+          </View>
         </View>
       </View>
     </View>
   );
 
   const renderDateSelection = () => (
-    <View className="bg-white mx-4 mb-4 rounded-xl p-4 shadow-sm">
-      {/* Hiển thị phần chọn ngày cho tất cả dịch vụ */}
-      <View className="flex-row items-center mb-3">
-        <Ionicons name="calendar" size={20} color="#8B5CF6" />
-        <Text className="text-lg font-semibold text-gray-800 ml-2">
-          Chọn Ngày Khám
-        </Text>
-        <Text className="text-red-500 ml-1">*</Text>
-      </View>
+    <View className="mx-6 mb-6 space-y-6">
+      {/* Date Selection Card */}
+      <View className="bg-white rounded-3xl p-6 shadow-lg border border-blue-50">
+        <View className="flex-row items-center mb-6">
+          <View className="bg-blue-100 p-3 rounded-full mr-4">
+            <Ionicons name="calendar" size={24} color="#3B82F6" />
+          </View>
+          <View className="flex-1">
+            <Text className="text-xl font-bold text-gray-800">
+              Chọn Ngày Khám
+            </Text>
+            <View className="flex-row items-center mt-1">
+              <Text className="text-sm text-blue-600 font-medium">Bắt buộc</Text>
+              <Text className="text-red-500 ml-1 text-lg">*</Text>
+            </View>
+          </View>
+        </View>
 
-      <TouchableOpacity 
-        className="border border-gray-300 rounded-lg p-4 flex-row items-center justify-between mb-4"
-        onPress={() => setShowDatePicker(true)}
-      >
-        {selectedDate ? (
-          <View className="flex-row items-center flex-1">
-            <Ionicons name="checkmark-circle" size={18} color="#10B981" />
-            <View className="ml-3">
-              <Text className="text-sm font-bold text-gray-800">
-                {(() => {
-                  // Parse selectedDate (YYYY-MM-DD) để tránh timezone issues
-                  const [year, month, day] = selectedDate.split('-').map(Number);
-                  const date = new Date(year, month - 1, day); // month - 1 vì getMonth() bắt đầu từ 0
-                  
-                  console.log('Date display:', {
-                    selectedDate,
-                    parsedDate: date,
-                    displayString: date.toLocaleDateString('vi-VN', {
+        <TouchableOpacity 
+          className={`border-2 rounded-2xl p-4 ${
+            selectedDate 
+              ? 'border-blue-200 bg-blue-50' 
+              : 'border-gray-200 bg-gray-50'
+          }`}
+          onPress={() => setShowDatePicker(true)}
+        >
+          {selectedDate ? (
+            <View className="flex-row items-center">
+              <View className="bg-blue-500 p-2 rounded-full mr-4">
+                <Ionicons name="checkmark" size={16} color="white" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-lg font-bold text-gray-800">
+                  {(() => {
+                    const [year, month, day] = selectedDate.split('-').map(Number);
+                    const date = new Date(year, month - 1, day);
+                    return date.toLocaleDateString('vi-VN', {
                       weekday: 'long',
                       day: 'numeric',
                       month: 'long'
-                    })
-                  });
-                  
-                  return date.toLocaleDateString('vi-VN', {
-                    weekday: 'long',
-                    day: 'numeric',
-                    month: 'long'
-                  });
-                })()}
-              </Text>
-              <Text className="text-xs text-gray-500">
-                {(() => {
-                  const [year] = selectedDate.split('-').map(Number);
-                  return year;
-                })()}
-              </Text>
+                    });
+                  })()}
+                </Text>
+                <Text className="text-sm text-blue-600 font-medium mt-1">
+                  ✓ Đã chọn ngày khám
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#3B82F6" />
             </View>
-          </View>
-        ) : (
-          <View className="flex-row items-center">
-            <Ionicons name="calendar-outline" size={18} color="#9CA3AF" />
-            <Text className="text-gray-500 ml-3">Chọn ngày khám bệnh</Text>
-          </View>
-        )}
-        <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
-      </TouchableOpacity>
-
-      <View className="flex-row items-center mb-3">
-        <Ionicons name="person" size={20} color="#8B5CF6" />
-        <Text className="text-lg font-semibold text-gray-800 ml-2">
-          Chọn Bác Sĩ
-        </Text>
-        {serviceDetails?.type !== 'CONSULT' && (
-          <Text className="text-red-500 ml-1">*</Text>
-        )}
+          ) : (
+            <View className="flex-row items-center">
+              <View className="bg-gray-300 p-2 rounded-full mr-4">
+                <Ionicons name="calendar-outline" size={16} color="#6B7280" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-gray-500 font-medium">
+                  Chọn ngày khám bệnh
+                </Text>
+                <Text className="text-xs text-gray-400 mt-1">
+                  Nhấn để mở lịch
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+            </View>
+          )}
+        </TouchableOpacity>
       </View>
 
-      {/* Chỉ hiển thị phần chọn bác sĩ nếu không phải dịch vụ tư vấn */}
-      {serviceDetails?.type !== 'CONSULT' ? (
-        <TouchableOpacity 
-          className="border border-gray-300 rounded-lg p-3 flex-row items-center justify-between"
-          onPress={() => setShowDoctorModal(true)}
-        >
-          {selectedDoctor ? (
-            <View className="flex-row items-center flex-1">
-              <Ionicons name="checkmark-circle" size={16} color="#10B981" />
-              <View className="ml-2 flex-1">
-                <Text className="text-sm font-medium text-gray-800">
-                  {selectedDoctor.user?.name || selectedDoctor.name}
+      {/* Doctor Selection Card */}
+      <View className="bg-white rounded-3xl p-6 shadow-lg border border-purple-50">
+        <View className="flex-row items-center mb-6">
+          <View className="bg-purple-100 p-3 rounded-full mr-4">
+            <Ionicons name="person" size={24} color="#8B5CF6" />
+          </View>
+          <View className="flex-1">
+            <Text className="text-xl font-bold text-gray-800">
+              Chọn Bác Sĩ
+            </Text>
+            <View className="flex-row items-center mt-1">
+              {serviceDetails?.type !== 'CONSULT' ? (
+                <>
+                  <Text className="text-sm text-purple-600 font-medium">Bắt buộc</Text>
+                  <Text className="text-red-500 ml-1 text-lg">*</Text>
+                </>
+              ) : (
+                <Text className="text-sm text-gray-500 font-medium">Tự động</Text>
+              )}
+            </View>
+          </View>
+        </View>
+
+        {serviceDetails?.type !== 'CONSULT' ? (
+          <TouchableOpacity 
+            className={`border-2 rounded-2xl p-4 ${
+              selectedDoctor 
+                ? 'border-purple-200 bg-purple-50' 
+                : 'border-gray-200 bg-gray-50'
+            }`}
+            onPress={() => setShowDoctorModal(true)}
+          >
+            {selectedDoctor ? (
+              <View className="flex-row items-center">
+                <View className="bg-purple-500 p-2 rounded-full mr-4">
+                  <Ionicons name="checkmark" size={16} color="white" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-lg font-bold text-gray-800">
+                    {selectedDoctor.user?.name || selectedDoctor.name}
+                  </Text>
+                  <Text className="text-sm text-purple-600 font-medium mt-1">
+                    {selectedDoctor.specialization || 'Bác sĩ đa khoa'}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#8B5CF6" />
+              </View>
+            ) : (
+              <View className="flex-row items-center">
+                <View className="bg-gray-300 p-2 rounded-full mr-4">
+                  <Ionicons name="person-outline" size={16} color="#6B7280" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-gray-500 font-medium">
+                    Chọn bác sĩ khám
+                  </Text>
+                  <Text className="text-xs text-gray-400 mt-1">
+                    Nhấn để xem danh sách bác sĩ
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+              </View>
+            )}
+          </TouchableOpacity>
+        ) : (
+          <View className="border-2 border-emerald-200 bg-emerald-50 rounded-2xl p-4">
+            <View className="flex-row items-center">
+              <View className="bg-emerald-500 p-2 rounded-full mr-4">
+                <Ionicons name="videocam" size={16} color="white" />
+              </View>
+              <View className="flex-1">
+                <Text className="text-lg font-bold text-gray-800">
+                  Tư vấn trực tuyến
                 </Text>
-                <Text className="text-xs text-blue-600">
-                  {selectedDoctor.specialization || 'Bác sĩ đa khoa'}
+                <Text className="text-sm text-emerald-600 font-medium mt-1">
+                  Hệ thống sẽ tự động phân bổ chuyên gia
                 </Text>
               </View>
             </View>
-          ) : (
-            <Text className="text-gray-500">Chọn bác sĩ</Text>
-          )}
-          <Ionicons name="chevron-down" size={20} color="#9CA3AF" />
-        </TouchableOpacity>
-      ) : (
-        <View className="border border-blue-200 bg-blue-50 rounded-lg p-3 flex-row items-center">
-          <Ionicons name="videocam" size={16} color="#3B82F6" />
-          <Text className="text-sm text-blue-700 ml-2 flex-1">
-            Dịch vụ tư vấn trực tuyến - Không cần chọn bác sĩ cụ thể
-          </Text>
-        </View>
-      )}
+          </View>
+        )}
+      </View>
 
-      {/* Available Time Slots */}
+      {/* Time Slots Card */}
       {selectedDate && ((serviceDetails?.type === 'CONSULT') || 
         (serviceDetails?.type !== 'CONSULT' && selectedDoctor)) && (
-        <View className="mt-4">
-          <View className="flex-row items-center mb-3">
-            <Ionicons name="time" size={20} color="#8B5CF6" />
-            <Text className="text-lg font-semibold text-gray-800 ml-2">
-              {serviceDetails?.type === 'CONSULT' ? 'Giờ tư vấn khả dụng' : 'Giờ khám khả dụng'}
-            </Text>
+        <View className="bg-white rounded-3xl p-6 shadow-lg border border-green-50">
+          <View className="flex-row items-center mb-6">
+            <View className="bg-green-100 p-3 rounded-full mr-4">
+              <Ionicons name="time" size={24} color="#10B981" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-xl font-bold text-gray-800">
+                {serviceDetails?.type === 'CONSULT' ? 'Giờ Tư Vấn' : 'Giờ Khám Bệnh'}
+              </Text>
+              <View className="flex-row items-center mt-1">
+                <Text className="text-sm text-green-600 font-medium">Bắt buộc</Text>
+                <Text className="text-red-500 ml-1 text-lg">*</Text>
+              </View>
+            </View>
           </View>
           
           {availableSlots.length > 0 ? (
-            <View className="flex-row flex-wrap gap-2">
-              {availableSlots.map((slot, index) => (
-                <TouchableOpacity
-                  key={index}
-                  className={`border rounded-lg px-3 py-2 flex-row items-center ${
-                    selectedTimeSlot?.start === slot.start 
-                      ? 'bg-purple-100 border-purple-300' 
-                      : 'bg-green-50 border-green-200'
-                  }`}
-                  onPress={() => setSelectedTimeSlot(slot)}
-                >
-                  <Ionicons 
-                    name={selectedTimeSlot?.start === slot.start ? "radio-button-on" : "checkmark-circle"} 
-                    size={14} 
-                    color={selectedTimeSlot?.start === slot.start ? "#8B5CF6" : "#10B981"} 
-                  />
-                  <Text className={`text-xs font-medium ml-1 ${
-                    selectedTimeSlot?.start === slot.start ? 'text-purple-700' : 'text-green-700'
-                  }`}>
-                    {slot.display}
+            <View className="space-y-4">
+              {/* Morning Slots */}
+              {availableSlots.filter(slot => slot.shift === 'MORNING' || slot.start < '12:00').length > 0 && (
+                <View>
+                  <Text className="text-sm font-bold text-gray-700 mb-3">
+                    🌅 Buổi Sáng
                   </Text>
-                  {serviceDetails?.type !== 'CONSULT' && (
-                    <Text className={`text-xs ml-1 ${
-                      selectedTimeSlot?.start === slot.start ? 'text-purple-600' : 'text-green-600'
-                    }`}>
-                      ({slot.shift === 'MORNING' ? 'Sáng' : 'Chiều'})
-                    </Text>
-                  )}
-                </TouchableOpacity>
-              ))}
+                  <View className="flex-row flex-wrap gap-3">
+                    {availableSlots
+                      .filter(slot => slot.shift === 'MORNING' || slot.start < '12:00')
+                      .map((slot, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          className={`border-2 rounded-xl px-4 py-3 min-w-[100px] ${
+                            selectedTimeSlot?.start === slot.start 
+                              ? 'bg-green-500 border-green-500' 
+                              : 'bg-green-50 border-green-200'
+                          }`}
+                          onPress={() => setSelectedTimeSlot(slot)}
+                        >
+                          <Text className={`text-sm font-bold text-center ${
+                            selectedTimeSlot?.start === slot.start ? 'text-white' : 'text-green-700'
+                          }`}>
+                            {slot.display}
+                          </Text>
+                        </TouchableOpacity>
+                      ))
+                    }
+                  </View>
+                </View>
+              )}
+
+              {/* Afternoon Slots */}
+              {availableSlots.filter(slot => slot.shift === 'AFTERNOON' || slot.start >= '12:00').length > 0 && (
+                <View>
+                  <Text className="text-sm font-bold text-gray-700 mb-3">
+                    🌇 Buổi Chiều
+                  </Text>
+                  <View className="flex-row flex-wrap gap-3">
+                    {availableSlots
+                      .filter(slot => slot.shift === 'AFTERNOON' || slot.start >= '12:00')
+                      .map((slot, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          className={`border-2 rounded-xl px-4 py-3 min-w-[100px] ${
+                            selectedTimeSlot?.start === slot.start 
+                              ? 'bg-green-500 border-green-500' 
+                              : 'bg-green-50 border-green-200'
+                          }`}
+                          onPress={() => setSelectedTimeSlot(slot)}
+                        >
+                          <Text className={`text-sm font-bold text-center ${
+                            selectedTimeSlot?.start === slot.start ? 'text-white' : 'text-green-700'
+                          }`}>
+                            {slot.display}
+                          </Text>
+                        </TouchableOpacity>
+                      ))
+                    }
+                  </View>
+                </View>
+              )}
             </View>
           ) : (
-            <View className="bg-gray-50 rounded-lg p-4 items-center">
-              <Ionicons name="calendar-outline" size={24} color="#9CA3AF" />
-              <Text className="text-gray-500 text-sm mt-2 text-center">
+            <View className="bg-gray-50 rounded-2xl p-6 items-center">
+              <View className="bg-gray-200 p-4 rounded-full mb-4">
+                <Ionicons name="calendar-outline" size={32} color="#9CA3AF" />
+              </View>
+              <Text className="text-gray-700 font-bold text-center mb-2">
+                Không có giờ khám khả dụng
+              </Text>
+              <Text className="text-gray-500 text-sm text-center leading-relaxed">
                 {(() => {
-                  // Kiểm tra ngày hôm nay bằng local timezone
                   const today = new Date();
                   const localYear = today.getFullYear();
                   const localMonth = (today.getMonth() + 1).toString().padStart(2, '0');
                   const localDay = today.getDate().toString().padStart(2, '0');
                   const todayStr = `${localYear}-${localMonth}-${localDay}`;
                   
-                  let message = 'Không có giờ khám nào khả dụng trong ngày này';
+                  let message = 'Vui lòng chọn ngày khác';
                   
                   if (selectedDate === todayStr) {
-                    message += '\n(Các slot có thể đã được đặt hoặc đã qua giờ)';
+                    message = 'Các giờ khám có thể đã được đặt hoặc đã qua';
                   }
                   
-                  // Thêm thông tin về thời gian hoạt động của service
                   if (serviceDetails?.startTime && serviceDetails?.endTime) {
                     message += `\n\nDịch vụ "${selectedService?.name}" chỉ hoạt động từ ${serviceDetails.startTime} - ${serviceDetails.endTime}`;
                   }
@@ -801,168 +881,293 @@ const BookAppointment = () => {
   );
 
   const renderConfirmation = () => (
-    <View className="bg-white mx-4 mb-4 rounded-xl p-4 shadow-sm">
-      <View className="flex-row items-center mb-4">
-        <Ionicons name="clipboard" size={20} color="#8B5CF6" />
-        <Text className="text-lg font-semibold text-gray-800 ml-2">
-          Xác Nhận Thông Tin
-        </Text>
-      </View>
+    <View className="mx-6 mb-6 space-y-6">
+      {/* Summary Card */}
+      <View className="bg-white rounded-3xl p-6 shadow-lg border border-orange-50">
+        <View className="flex-row items-center mb-6">
+          <View className="bg-orange-100 p-3 rounded-full mr-4">
+            <Ionicons name="clipboard" size={24} color="#F97316" />
+          </View>
+          <View className="flex-1">
+            <Text className="text-xl font-bold text-gray-800">
+              Xác Nhận Thông Tin
+            </Text>
+            <Text className="text-sm text-orange-600 font-medium mt-1">
+              Kiểm tra lại thông tin đặt lịch
+            </Text>
+          </View>
+        </View>
 
-      {/* Tóm tắt thông tin đặt lịch */}
-      <View className="bg-gray-50 rounded-lg p-4 mb-4">
-        <Text className="text-sm font-bold text-gray-800 mb-3">
-          Thông tin lịch hẹn:
-        </Text>
-        
-        <View className="space-y-2">
-          <View className="flex-row justify-between">
-            <Text className="text-sm text-gray-600">Dịch vụ:</Text>
-            <Text className="text-sm font-medium text-gray-800 flex-1 text-right">
-              {selectedService?.name}
-            </Text>
-          </View>
-          
-          {/* Chỉ hiển thị thông tin bác sĩ nếu không phải dịch vụ tư vấn */}
-          {serviceDetails?.type !== 'CONSULT' && (
-            <View className="flex-row justify-between">
-              <Text className="text-sm text-gray-600">Bác sĩ:</Text>
-              <Text className="text-sm font-medium text-gray-800 flex-1 text-right">
-                {selectedDoctor?.user?.name}
-              </Text>
+        {/* Appointment Summary */}
+        <View className="bg-orange-50 rounded-2xl p-5 border border-orange-200">
+          <View className="flex-row items-center mb-4">
+            <View className="bg-orange-500 p-2 rounded-full mr-3">
+              <Ionicons name="calendar" size={16} color="white" />
             </View>
-          )}
+            <Text className="text-lg font-bold text-gray-800">
+              Thông tin lịch hẹn
+            </Text>
+          </View>
           
-          {serviceDetails?.type === 'CONSULT' && (
-            <View className="flex-row justify-between">
-              <Text className="text-sm text-gray-600">Loại:</Text>
-              <Text className="text-sm font-medium text-blue-600 flex-1 text-right">
-                Tư vấn trực tuyến
-              </Text>
+          <View className="space-y-4">
+            {/* Service Info */}
+            <View className="bg-white rounded-xl p-4">
+              <View className="flex-row items-center justify-between">
+                <Text className="text-sm text-gray-600 font-medium">Dịch vụ</Text>
+                <Text className="text-sm font-bold text-gray-800 flex-1 text-right">
+                  {selectedService?.name}
+                </Text>
+              </View>
             </View>
-          )}
-          
-          <View className="flex-row justify-between">
-            <Text className="text-sm text-gray-600">Ngày khám:</Text>
-            <Text className="text-sm font-medium text-gray-800 flex-1 text-right">
-              {(() => {
-                // Parse selectedDate (YYYY-MM-DD) để tránh timezone issues
-                const [year, month, day] = selectedDate.split('-').map(Number);
-                const date = new Date(year, month - 1, day);
-                return date.toLocaleDateString('vi-VN');
-              })()}
-            </Text>
-          </View>
-          
-          <View className="flex-row justify-between">
-            <Text className="text-sm text-gray-600">Giờ khám:</Text>
-            <Text className="text-sm font-medium text-gray-800 flex-1 text-right">
-              {selectedTimeSlot?.display}
-            </Text>
-          </View>
-          
-          <View className="flex-row justify-between">
-            <Text className="text-sm text-gray-600">Giá dịch vụ:</Text>
-            <Text className="text-sm font-medium text-green-600 flex-1 text-right">
-              {serviceDetails?.price}₫
-            </Text>
+            
+            {/* Doctor Info (if not consultation) */}
+            {serviceDetails?.type !== 'CONSULT' && (
+              <View className="bg-white rounded-xl p-4">
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-sm text-gray-600 font-medium">Bác sĩ</Text>
+                  <Text className="text-sm font-bold text-gray-800 flex-1 text-right">
+                    {selectedDoctor?.user?.name}
+                  </Text>
+                </View>
+                <View className="flex-row items-center justify-between mt-2">
+                  <Text className="text-xs text-gray-500">Chuyên khoa</Text>
+                  <Text className="text-xs text-purple-600 font-medium">
+                    {selectedDoctor?.specialization || 'Đa khoa'}
+                  </Text>
+                </View>
+              </View>
+            )}
+            
+            {/* Consultation Type (if consultation) */}
+            {serviceDetails?.type === 'CONSULT' && (
+              <View className="bg-white rounded-xl p-4">
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-sm text-gray-600 font-medium">Loại dịch vụ</Text>
+                  <View className="flex-row items-center">
+                    <Ionicons name="videocam" size={16} color="#3B82F6" />
+                    <Text className="text-sm font-bold text-blue-600 ml-2">
+                      Tư vấn trực tuyến
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
+            
+            {/* Date Info */}
+            <View className="bg-white rounded-xl p-4">
+              <View className="flex-row items-center justify-between">
+                <Text className="text-sm text-gray-600 font-medium">Ngày khám</Text>
+                <Text className="text-sm font-bold text-gray-800 flex-1 text-right">
+                  {(() => {
+                    const [year, month, day] = selectedDate.split('-').map(Number);
+                    const date = new Date(year, month - 1, day);
+                    return date.toLocaleDateString('vi-VN');
+                  })()}
+                </Text>
+              </View>
+            </View>
+            
+            {/* Time Info */}
+            <View className="bg-white rounded-xl p-4">
+              <View className="flex-row items-center justify-between">
+                <Text className="text-sm text-gray-600 font-medium">Giờ khám</Text>
+                <View className="flex-row items-center">
+                  <Ionicons name="time" size={16} color="#10B981" />
+                  <Text className="text-sm font-bold text-gray-800 ml-2">
+                    {selectedTimeSlot?.display}
+                  </Text>
+                </View>
+              </View>
+            </View>
+            
+            {/* Price Info */}
+            <View className="bg-white rounded-xl p-4">
+              <View className="flex-row items-center justify-between">
+                <Text className="text-sm text-gray-600 font-medium">Giá dịch vụ</Text>
+                <View className="flex-row items-center">
+                  <Ionicons name="cash" size={16} color="#10B981" />
+                  <Text className="text-lg font-bold text-green-600 ml-2">
+                    {formatCurrency(serviceDetails?.price)}
+                  </Text>
+                </View>
+              </View>
+            </View>
           </View>
         </View>
       </View>
 
-      {/* Ghi chú */}
-      <View className="mb-4">
-        <Text className="text-sm font-medium text-gray-800 mb-2">
-          Ghi chú (không bắt buộc):
-        </Text>
+      {/* Notes Card */}
+      <View className="bg-white rounded-3xl p-6 shadow-lg border border-blue-50">
+        <View className="flex-row items-center mb-4">
+          <View className="bg-blue-100 p-3 rounded-full mr-4">
+            <Ionicons name="document-text" size={24} color="#3B82F6" />
+          </View>
+          <View className="flex-1">
+            <Text className="text-xl font-bold text-gray-800">
+              Ghi Chú
+            </Text>
+            <Text className="text-sm text-blue-600 font-medium mt-1">
+              Tùy chọn (không bắt buộc)
+            </Text>
+          </View>
+        </View>
+
         <TextInput
-          className="border border-gray-300 rounded-lg p-3 text-sm text-gray-800 min-h-[80px]"
+          className="border-2 border-gray-200 rounded-2xl p-4 text-sm text-gray-800 min-h-[100px] bg-gray-50"
           placeholder="Nhập ghi chú về triệu chứng, yêu cầu đặc biệt..."
           value={note}
           onChangeText={setNote}
           multiline
           textAlignVertical="top"
+          placeholderTextColor="#9CA3AF"
         />
       </View>
 
-      {/* Lưu ý */}
-      <View className="bg-blue-50 rounded-lg p-3">
-        <View className="flex-row items-center mb-2">
-          <Ionicons name="information-circle" size={16} color="#3B82F6" />
-          <Text className="text-sm font-medium text-blue-800 ml-2">
-            Lưu ý quan trọng:
+      {/* Important Notes Card */}
+      <View className="bg-white rounded-3xl p-6 shadow-lg border border-red-50">
+        <View className="flex-row items-center mb-4">
+          <View className="bg-red-100 p-3 rounded-full mr-4">
+            <Ionicons name="information-circle" size={24} color="#EF4444" />
+          </View>
+          <Text className="text-xl font-bold text-gray-800">
+            Lưu Ý Quan Trọng
           </Text>
         </View>
-        <Text className="text-xs text-blue-700 leading-4">
-          • Vui lòng đến trước giờ hẹn 15 phút để làm thủ tục{'\n'}
-          • Mang theo giấy tờ tùy thân và thẻ bảo hiểm y tế (nếu có){'\n'}
-          • Liên hệ hotline để thay đổi lịch hẹn trước 24h
-        </Text>
+        
+        <View className="space-y-3">
+          <View className="flex-row items-start">
+            <View className="bg-red-500 w-2 h-2 rounded-full mt-2 mr-3"></View>
+            <Text className="text-sm text-gray-700 flex-1 leading-relaxed">
+              Vui lòng đến trước giờ hẹn 15 phút để làm thủ tục
+            </Text>
+          </View>
+          
+          <View className="flex-row items-start">
+            <View className="bg-red-500 w-2 h-2 rounded-full mt-2 mr-3"></View>
+            <Text className="text-sm text-gray-700 flex-1 leading-relaxed">
+              Mang theo giấy tờ tùy thân và thẻ bảo hiểm y tế (nếu có)
+            </Text>
+          </View>
+          
+          <View className="flex-row items-start">
+            <View className="bg-red-500 w-2 h-2 rounded-full mt-2 mr-3"></View>
+            <Text className="text-sm text-gray-700 flex-1 leading-relaxed">
+              Liên hệ hotline để thay đổi lịch hẹn trước 24h
+            </Text>
+          </View>
+          
+          {serviceDetails?.type === 'CONSULT' && (
+            <View className="flex-row items-start">
+              <View className="bg-blue-500 w-2 h-2 rounded-full mt-2 mr-3"></View>
+              <Text className="text-sm text-gray-700 flex-1 leading-relaxed">
+                Dịch vụ tư vấn trực tuyến - chúng tôi sẽ liên hệ qua video call
+              </Text>
+            </View>
+          )}
+        </View>
       </View>
     </View>
   );
 
   const renderServiceSelection = () => (
-    <View className="bg-white mx-4 mb-4 rounded-xl p-4 shadow-sm">
-      <View className="flex-row items-center justify-between mb-3">
-        <View className="flex-row items-center">
-          <Ionicons name="medical" size={20} color="#8B5CF6" />
-          <Text className="text-lg font-semibold text-gray-800 ml-2">
-            Chọn dịch vụ
+    <View className="mx-6 mb-6 bg-white rounded-3xl p-6 shadow-lg border border-blue-50">
+      <View className="flex-row items-center mb-6">
+        <View className="bg-emerald-100 p-3 rounded-full mr-4">
+          <Ionicons name="medical" size={24} color="#10B981" />
+        </View>
+        <View className="flex-1">
+          <Text className="text-xl font-bold text-gray-800">
+            Chọn Dịch Vụ
           </Text>
-          <Text className="text-red-500 ml-1">*</Text>
+          <View className="flex-row items-center mt-1">
+            <Text className="text-sm text-emerald-600 font-medium">Bắt buộc</Text>
+            <Text className="text-red-500 ml-1 text-lg">*</Text>
+          </View>
         </View>
       </View>
 
       <TouchableOpacity 
-        className="border border-gray-300 rounded-lg p-3 flex-row items-center justify-between"
+        className={`border-2 rounded-2xl p-4 ${
+          selectedService 
+            ? 'border-emerald-200 bg-emerald-50' 
+            : 'border-gray-200 bg-gray-50'
+        }`}
         onPress={() => setShowServiceModal(true)}
       >
         {selectedService ? (
-          <View className="flex-row items-center flex-1">
-            <Ionicons name="checkmark-circle" size={16} color="#10B981" />
-            <View className="ml-2 flex-1">
-              <Text className="text-sm font-medium text-gray-800">
+          <View className="flex-row items-center">
+            <View className="bg-emerald-500 p-2 rounded-full mr-4">
+              <Ionicons name="checkmark" size={16} color="white" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-lg font-bold text-gray-800">
                 {selectedService.name}
               </Text>
-              <Text className="text-xs text-green-600">Đang hoạt động</Text>
+              <Text className="text-sm text-emerald-600 font-medium mt-1">
+                ✓ Đã chọn dịch vụ
+              </Text>
             </View>
+            <Ionicons name="chevron-forward" size={20} color="#10B981" />
           </View>
         ) : (
-          <Text className="text-gray-500">Chọn dịch vụ khám bệnh</Text>
+          <View className="flex-row items-center">
+            <View className="bg-gray-300 p-2 rounded-full mr-4">
+              <Ionicons name="medical-outline" size={16} color="#6B7280" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-gray-500 font-medium">
+                Chọn dịch vụ khám bệnh
+              </Text>
+              <Text className="text-xs text-gray-400 mt-1">
+                Nhấn để xem danh sách dịch vụ
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          </View>
         )}
-        <Ionicons name="chevron-down" size={20} color="#9CA3AF" />
       </TouchableOpacity>
 
       {/* Service Details */}
       {serviceDetails && (
-        <View className="mt-4 p-3 bg-green-50 rounded-lg">
-          <View className="flex-row items-center mb-2">
-            <Ionicons name="checkmark-circle" size={16} color="#10B981" />
-            <Text className="text-sm font-bold text-gray-800 ml-2">
+        <View className="mt-6 p-5 bg-emerald-50 rounded-2xl border border-emerald-200">
+          <View className="flex-row items-center mb-4">
+            <View className="bg-emerald-500 p-2 rounded-full mr-3">
+              <Ionicons name="checkmark-circle" size={16} color="white" />
+            </View>
+            <Text className="text-lg font-bold text-gray-800">
               {serviceDetails.name}
             </Text>
           </View>
           
-          <View className="space-y-2">
-            <View className="flex-row justify-between">
-              <Text className="text-xs text-gray-600">Xét nghiệm</Text>
-              <Text className="text-xs font-medium">
-                Giá: {serviceDetails.price}₫
+          <View className="space-y-3">
+            <View className="flex-row items-center justify-between bg-white rounded-xl p-3">
+              <View className="flex-row items-center">
+                <Ionicons name="cash-outline" size={16} color="#10B981" />
+                <Text className="text-sm text-gray-600 ml-2">Giá dịch vụ</Text>
+              </View>
+              <Text className="text-lg font-bold text-emerald-600">
+                {formatCurrency(serviceDetails.price)}
               </Text>
             </View>
             
-            <View className="flex-row justify-between">
-              <Text className="text-xs text-gray-600">Thời gian:</Text>
-              <Text className="text-xs font-medium">
+            <View className="flex-row items-center justify-between bg-white rounded-xl p-3">
+              <View className="flex-row items-center">
+                <Ionicons name="time-outline" size={16} color="#10B981" />
+                <Text className="text-sm text-gray-600 ml-2">Thời gian hoạt động</Text>
+              </View>
+              <Text className="text-sm font-bold text-gray-800">
                 {serviceDetails.startTime} - {serviceDetails.endTime}
               </Text>
             </View>
           </View>
           
-          <Text className="text-xs text-gray-600 mt-2">
-            {serviceDetails.description}
-          </Text>
+          {serviceDetails.description && (
+            <View className="mt-4 p-3 bg-white rounded-xl">
+              <Text className="text-sm text-gray-600 leading-relaxed">
+                {serviceDetails.description}
+              </Text>
+            </View>
+          )}
         </View>
       )}
     </View>
@@ -975,41 +1180,89 @@ const BookAppointment = () => {
       animationType="slide"
       onRequestClose={() => setShowServiceModal(false)}
     >
-      <View className="flex-1 bg-black/50 justify-end">
-        <View className="bg-white rounded-t-3xl max-h-96">
-          <View className="p-4 border-b border-gray-200">
+      <View className="flex-1 bg-black/60 justify-end">
+        <View className="bg-white rounded-t-3xl max-h-[80%]">
+          {/* Modal Header */}
+          <View className="p-6 border-b border-gray-100">
             <View className="flex-row justify-between items-center">
-              <Text className="text-lg font-bold text-gray-800">
-                Chọn dịch vụ
-              </Text>
-              <TouchableOpacity onPress={() => setShowServiceModal(false)}>
-                <Ionicons name="close" size={24} color="#9CA3AF" />
+              <View className="flex-row items-center">
+                <View className="bg-emerald-100 p-2 rounded-full mr-3">
+                  <Ionicons name="medical" size={20} color="#10B981" />
+                </View>
+                <Text className="text-xl font-bold text-gray-800">
+                  Chọn Dịch Vụ
+                </Text>
+              </View>
+              <TouchableOpacity 
+                onPress={() => setShowServiceModal(false)}
+                className="p-2 bg-gray-100 rounded-full"
+              >
+                <Ionicons name="close" size={20} color="#6B7280" />
               </TouchableOpacity>
             </View>
+            <Text className="text-sm text-gray-600 mt-2">
+              Chọn dịch vụ y tế phù hợp với nhu cầu của bạn
+            </Text>
           </View>
           
-          <ScrollView className="p-4">
+          {/* Services List */}
+          <ScrollView className="p-6" showsVerticalScrollIndicator={false}>
             {services.map((service, index) => (
               <TouchableOpacity
                 key={service.id}
-                className="p-3 border border-gray-200 rounded-lg mb-3 flex-row items-center"
+                className={`border-2 rounded-2xl p-5 mb-4 ${
+                  selectedService?.id === service.id 
+                    ? 'border-emerald-300 bg-emerald-50' 
+                    : 'border-gray-200 bg-white'
+                }`}
                 onPress={() => handleSelectService(service)}
               >
-                <Ionicons name="medical" size={20} color="#8B5CF6" />
-                <View className="ml-3 flex-1">
-                  <Text className="text-sm font-medium text-gray-800">
-                    {service.name}
-                  </Text>
-                  <Text className="text-xs text-gray-600">
-                    {service.description}
-                  </Text>
-                  <Text className="text-xs text-blue-600 font-medium">
-                    Giá: {service.price}₫
-                  </Text>
+                <View className="flex-row items-start">
+                  <View className={`p-3 rounded-full mr-4 ${
+                    selectedService?.id === service.id 
+                      ? 'bg-emerald-500' 
+                      : 'bg-gray-100'
+                  }`}>
+                    <Ionicons 
+                      name="medical" 
+                      size={20} 
+                      color={selectedService?.id === service.id ? "white" : "#6B7280"} 
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <View className="flex-row items-center justify-between mb-2">
+                      <Text className="text-lg font-bold text-gray-800">
+                        {service.name}
+                      </Text>
+                      {selectedService?.id === service.id && (
+                        <View className="bg-emerald-500 p-1 rounded-full">
+                          <Ionicons name="checkmark" size={16} color="white" />
+                        </View>
+                      )}
+                    </View>
+                    
+                    <Text className="text-sm text-gray-600 mb-3 leading-relaxed">
+                      {service.description}
+                    </Text>
+                    
+                    <View className="flex-row items-center justify-between">
+                      <View className="bg-emerald-100 px-3 py-2 rounded-full">
+                        <Text className="text-sm font-bold text-emerald-700">
+                          {formatCurrency(service.price)}
+                        </Text>
+                      </View>
+                      {selectedService?.id === service.id ? (
+                        <Text className="text-sm font-medium text-emerald-600">
+                          ✓ Đã chọn
+                        </Text>
+                      ) : (
+                        <Text className="text-sm text-gray-500">
+                          Nhấn để chọn
+                        </Text>
+                      )}
+                    </View>
+                  </View>
                 </View>
-                {selectedService?.id === service.id && (
-                  <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-                )}
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -1031,43 +1284,90 @@ const BookAppointment = () => {
         animationType="slide"
         onRequestClose={() => setShowDoctorModal(false)}
       >
-        <View className="flex-1 bg-black/50 justify-end">
-          <View className="bg-white rounded-t-3xl max-h-96">
-            <View className="p-4 border-b border-gray-200">
+        <View className="flex-1 bg-black/60 justify-end">
+          <View className="bg-white rounded-t-3xl max-h-[80%]">
+            {/* Modal Header */}
+            <View className="p-6 border-b border-gray-100">
               <View className="flex-row justify-between items-center">
-                <Text className="text-lg font-bold text-gray-800">
-                  Chọn bác sĩ
-                </Text>
-                <TouchableOpacity onPress={() => setShowDoctorModal(false)}>
-                  <Ionicons name="close" size={24} color="#9CA3AF" />
+                <View className="flex-row items-center">
+                  <View className="bg-purple-100 p-2 rounded-full mr-3">
+                    <Ionicons name="person" size={20} color="#8B5CF6" />
+                  </View>
+                  <Text className="text-xl font-bold text-gray-800">
+                    Chọn Bác Sĩ
+                  </Text>
+                </View>
+                <TouchableOpacity 
+                  onPress={() => setShowDoctorModal(false)}
+                  className="p-2 bg-gray-100 rounded-full"
+                >
+                  <Ionicons name="close" size={20} color="#6B7280" />
                 </TouchableOpacity>
               </View>
+              <Text className="text-sm text-gray-600 mt-2">
+                Chọn bác sĩ phù hợp với nhu cầu của bạn
+              </Text>
             </View>
             
-            <ScrollView className="p-4">
+            {/* Doctors List */}
+            <ScrollView className="p-6" showsVerticalScrollIndicator={false}>
               {doctors.map((doctor, index) => (
                 <TouchableOpacity
                   key={doctor.id}
-                  className="p-3 border border-gray-200 rounded-lg mb-3 flex-row items-center"
+                  className={`border-2 rounded-2xl p-5 mb-4 ${
+                    selectedDoctor?.id === doctor.id 
+                      ? 'border-purple-300 bg-purple-50' 
+                      : 'border-gray-200 bg-white'
+                  }`}
                   onPress={() => handleSelectDoctor(doctor)}
                 >
-                  <View className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                    <Ionicons name="person" size={24} color="#8B5CF6" />
+                  <View className="flex-row items-start">
+                    <View className={`p-4 rounded-full mr-4 ${
+                      selectedDoctor?.id === doctor.id 
+                        ? 'bg-purple-500' 
+                        : 'bg-gray-100'
+                    }`}>
+                      <Ionicons 
+                        name="person" 
+                        size={24} 
+                        color={selectedDoctor?.id === doctor.id ? "white" : "#6B7280"} 
+                      />
+                    </View>
+                    <View className="flex-1">
+                      <View className="flex-row items-center justify-between mb-2">
+                        <Text className="text-lg font-bold text-gray-800">
+                          {doctor.user?.name || 'Tên bác sĩ'}
+                        </Text>
+                        {selectedDoctor?.id === doctor.id && (
+                          <View className="bg-purple-500 p-1 rounded-full">
+                            <Ionicons name="checkmark" size={16} color="white" />
+                          </View>
+                        )}
+                      </View>
+                      
+                      <Text className="text-sm text-gray-600 mb-2">
+                        {doctor.user?.email || 'Email không có'}
+                      </Text>
+                      
+                      <View className="bg-purple-100 px-3 py-2 rounded-full self-start">
+                        <Text className="text-sm font-bold text-purple-700">
+                          {doctor.specialization || 'Bác sĩ đa khoa'}
+                        </Text>
+                      </View>
+                      
+                      <View className="flex-row items-center justify-between mt-3">
+                        {selectedDoctor?.id === doctor.id ? (
+                          <Text className="text-sm font-medium text-purple-600">
+                            ✓ Đã chọn
+                          </Text>
+                        ) : (
+                          <Text className="text-sm text-gray-500">
+                            Nhấn để chọn
+                          </Text>
+                        )}
+                      </View>
+                    </View>
                   </View>
-                  <View className="ml-3 flex-1">
-                    <Text className="text-sm font-medium text-gray-800">
-                      {doctor.user?.name || 'Tên bác sĩ'}
-                    </Text>
-                    <Text className="text-xs text-gray-600">
-                      {doctor.user?.email || 'Email không có'}
-                    </Text>
-                    <Text className="text-xs text-blue-600 font-medium">
-                      Chuyên khoa: {doctor.specialization || 'Đa khoa'}
-                    </Text>
-                  </View>
-                  {selectedDoctor?.id === doctor.id && (
-                    <Ionicons name="checkmark-circle" size={20} color="#10B981" />
-                  )}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -1080,7 +1380,7 @@ const BookAppointment = () => {
   return (
     <View className="flex-1 bg-gray-50">
       {/* Header */}
-      <View className="bg-gradient-to-r from-purple-500 to-purple-600 px-4 py-6 pt-12">
+      <View className="bg-blue-600 px-4 py-6 pt-12">
         <View className="flex-row items-center mb-4">
           <Ionicons name="calendar-outline" size={24} color="white" />
           <Text className="text-xl font-bold text-white ml-3">
@@ -1112,43 +1412,53 @@ const BookAppointment = () => {
         {currentStep === 3 && renderConfirmation()}
 
         {/* Navigation Buttons */}
-        <View className="px-4 pb-6">
+        <View className="px-6 pb-8 space-y-4">
           {currentStep > 1 && (
             <TouchableOpacity 
-              className="py-4 rounded-lg flex-row items-center justify-center bg-gray-300 mb-3"
+              className="py-4 rounded-2xl flex-row items-center justify-center bg-white border-2 border-gray-200 shadow-sm"
               onPress={handleBack}
             >
-              <Ionicons name="arrow-back" size={20} color="#374151" />
-              <Text className="font-semibold ml-2 text-gray-700">
+              <Ionicons name="arrow-back" size={20} color="#6B7280" />
+              <Text className="font-bold ml-3 text-gray-700 text-lg">
                 Quay lại
               </Text>
             </TouchableOpacity>
           )}
           
           <TouchableOpacity 
-            className={`py-4 rounded-lg flex-row items-center justify-center ${
+            className={`py-5 rounded-2xl flex-row items-center justify-center shadow-lg border-2 ${
               (currentStep === 1 && selectedService) || 
               (currentStep === 2 && selectedDate && selectedTimeSlot && (serviceDetails?.type === 'CONSULT' || selectedDoctor)) ||
               currentStep === 3
-                ? 'bg-purple-500' : 'bg-gray-300'
+                ? 'bg-blue-600 border-blue-500' 
+                : 'bg-gray-400 border-gray-300'
             }`}
             onPress={handleNext}
             disabled={
               (currentStep === 1 && !selectedService) ||
               (currentStep === 2 && (!selectedDate || !selectedTimeSlot || (serviceDetails?.type !== 'CONSULT' && !selectedDoctor)))
             }
+            style={{
+              shadowColor: (currentStep === 1 && selectedService) || 
+                          (currentStep === 2 && selectedDate && selectedTimeSlot && (serviceDetails?.type === 'CONSULT' || selectedDoctor)) ||
+                          currentStep === 3 ? '#2563EB' : '#6B7280',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 8
+            }}
           >
-            <Text className={`font-semibold mr-2 ${
+            <Text className={`font-bold mr-3 text-lg ${
               (currentStep === 1 && selectedService) || 
               (currentStep === 2 && selectedDate && selectedTimeSlot && (serviceDetails?.type === 'CONSULT' || selectedDoctor)) ||
               currentStep === 3
-                ? 'text-white' : 'text-gray-500'
+                ? 'text-white' : 'text-gray-600'
             }`}>
               {currentStep === 1 ? 'Tiếp tục' : currentStep === 2 ? 'Xác nhận' : 'Đặt lịch hẹn'}
             </Text>
             <Ionicons 
-              name="arrow-forward" 
-              size={20} 
+              name={currentStep === 3 ? "checkmark-circle" : "arrow-forward"}
+              size={22} 
               color={
                 (currentStep === 1 && selectedService) || 
                 (currentStep === 2 && selectedDate && selectedTimeSlot && (serviceDetails?.type === 'CONSULT' || selectedDoctor)) ||

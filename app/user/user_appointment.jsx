@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -25,7 +26,7 @@ const UserAppointment = () => {
   const [error, setError] = useState(null);
   
   const { user } = useAuthStore();
-
+  const router = useRouter();
   const fetchAppointments = useCallback(async (isRefresh = false) => {
     try {
       if (isRefresh) {
@@ -102,7 +103,7 @@ const UserAppointment = () => {
 
   const getTypeIcon = (type) => {
     switch (type) {
-      case 'ONLINE':
+      case 'CONSULT':
         return 'videocam';
       case 'OFFLINE':
         return 'location';
@@ -206,7 +207,7 @@ const UserAppointment = () => {
                 color="#666" 
               />
               <Text className="text-xs text-gray-600">
-                {item.type === 'ONLINE' ? 'Trực tuyến' : 'Trực tiếp'}
+                {item.service.type === 'CONSULT' ? 'Trực tuyến' : 'Trực tiếp'}
               </Text>
             </View>
           </View>
@@ -336,12 +337,22 @@ const UserAppointment = () => {
   if (error && appointmentData.length === 0) {
     return renderErrorState();
   }
-
+ 
   return (
     <View className="flex-1 bg-gray-50">
 
-      <View className="bg-white px-5 py-6 border-b border-gray-200">
-        <Text className="text-2xl font-bold text-gray-800 mb-1">Cuộc hẹn của tôi</Text>
+      <View className="bg-white px-5 py-6 border-b border-gray-200 mt-[15px]">
+        <View className="flex-row items-center mb-3">
+                 <TouchableOpacity 
+                   onPress={() => router.back()}
+                   className="mr-3 p-2 -ml-2"
+                 >
+                   <Ionicons name="arrow-back" size={24} color="#374151" />
+                 </TouchableOpacity>
+                 <View className="flex-1">
+                   <Text className="text-2xl font-bold text-gray-800">Cuộc hẹn của tôi </Text>
+                 </View>
+               </View>
         <Text className="text-sm text-gray-600">
           {appointmentData.length} cuộc hẹn
         </Text>
