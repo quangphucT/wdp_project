@@ -1,5 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -13,10 +14,15 @@ import useFeatureStore from "../../stores/featureStore";
 
 const HomeScreen = () => {
   const router = useRouter();
+  const [expandedSection, setExpandedSection] = useState(null);
 
   // Zustand store
   const { logout, isAuthenticated, isLoading: authLoading, user, checkAuth } = useAuthStore(state => state);
-  const features = useFeatureStore(state => state.features);
+  const { getMainFeatures, getMedicalServices, getHivSupport } = useFeatureStore();
+
+  const mainFeatures = getMainFeatures();
+  const medicalServices = getMedicalServices();
+  const hivSupport = getHivSupport();
 
   // Kiểm tra đăng nhập khi component mount
   useEffect(() => {
@@ -112,8 +118,10 @@ const HomeScreen = () => {
       {/* Services Grid */}
       <View className="px-6 py-4">
         <Text className="text-xl font-bold text-gray-800 mb-6">Dịch vụ của chúng tôi</Text>
-        <View className="flex-row flex-wrap justify-between">
-          {features.map((item, index) => (
+        
+        {/* Main Features */}
+        <View className="flex-row flex-wrap justify-between mb-6">
+          {mainFeatures.map((item, index) => (
             <TouchableOpacity
               key={index}
               className="w-[47%] bg-white rounded-3xl p-6 mb-4 border border-gray-100 shadow-lg"
@@ -125,13 +133,117 @@ const HomeScreen = () => {
               }}
             >
               <View className={`w-16 h-16 ${item.bgColor} rounded-2xl justify-center items-center mb-4`}>
-                <Text className="text-2xl">{item.icon}</Text>
+                {typeof item.icon === 'string' ? (
+                  <Text className="text-2xl">{item.icon}</Text>
+                ) : (
+                  item.icon
+                )}
               </View>
               <Text className="text-gray-800 text-base font-semibold mb-2">{item.title}</Text>
               <Text className="text-gray-600 text-xs leading-4">{item.desc}</Text>
             </TouchableOpacity>
           ))}
         </View>
+
+        {/* Additional Services */}
+        <TouchableOpacity
+          className="bg-white rounded-3xl p-4 border border-gray-100 shadow-lg mb-4"
+          onPress={() => setExpandedSection(expandedSection === 'medical' ? null : 'medical')}
+        >
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center">
+              <View className="w-12 h-12 bg-blue-100 rounded-2xl justify-center items-center mr-4">
+                <Text className="text-xl">🏥</Text>
+              </View>
+              <View>
+                <Text className="text-gray-800 text-lg font-semibold">Dịch vụ y tế</Text>
+                <Text className="text-gray-600 text-sm">Đặt lịch, thông tin cơ sở, hồ sơ</Text>
+              </View>
+            </View>
+            <Ionicons 
+              name={expandedSection === 'medical' ? "chevron-up" : "chevron-down"} 
+              size={20} 
+              color="#6b7280" 
+            />
+          </View>
+        </TouchableOpacity>
+
+        {expandedSection === 'medical' && (
+          <View className="flex-row flex-wrap justify-between mb-6">
+            {medicalServices.map((item, index) => (
+              <TouchableOpacity
+                key={index}
+                className="w-[47%] bg-gray-50 rounded-2xl p-4 mb-3 border border-gray-100"
+                onPress={() => {
+                  const route = item.route;
+                  if (route) {
+                    router.push(route);
+                  }
+                }}
+              >
+                <View className={`w-12 h-12 ${item.bgColor} rounded-xl justify-center items-center mb-3`}>
+                  {typeof item.icon === 'string' ? (
+                    <Text className="text-lg">{item.icon}</Text>
+                  ) : (
+                    item.icon
+                  )}
+                </View>
+                <Text className="text-gray-800 text-sm font-semibold mb-1">{item.title}</Text>
+                <Text className="text-gray-600 text-xs leading-3">{item.desc}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        {/* HIV Support Services */}
+        <TouchableOpacity
+          className="bg-white rounded-3xl p-4 border border-gray-100 shadow-lg mb-4"
+          onPress={() => setExpandedSection(expandedSection === 'hiv' ? null : 'hiv')}
+        >
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center">
+              <View className="w-12 h-12 bg-green-100 rounded-2xl justify-center items-center mr-4">
+                <Text className="text-xl">🤝</Text>
+              </View>
+              <View>
+                <Text className="text-gray-800 text-lg font-semibold">Hỗ trợ HIV</Text>
+                <Text className="text-gray-600 text-sm">Giáo dục, giảm kỳ thị, cộng đồng</Text>
+              </View>
+            </View>
+            <Ionicons 
+              name={expandedSection === 'hiv' ? "chevron-up" : "chevron-down"} 
+              size={20} 
+              color="#6b7280" 
+            />
+          </View>
+        </TouchableOpacity>
+
+        {expandedSection === 'hiv' && (
+          <View className="flex-row flex-wrap justify-between mb-6">
+            {hivSupport.map((item, index) => (
+              <TouchableOpacity
+                key={index}
+                className="w-[47%] bg-gray-50 rounded-2xl p-4 mb-3 border border-gray-100"
+                onPress={() => {
+                  const route = item.route;
+                  if (route) {
+                    router.push(route);
+                  }
+                }}
+              >
+                <View className={`w-12 h-12 ${item.bgColor} rounded-xl justify-center items-center mb-3`}>
+                  {typeof item.icon === 'string' ? (
+                    <Text className="text-lg">{item.icon}</Text>
+                  ) : (
+                    item.icon
+                  )}
+                </View>
+                <Text className="text-gray-800 text-sm font-semibold mb-1">{item.title}</Text>
+                <Text className="text-gray-600 text-xs leading-3">{item.desc}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </View>
 
       {/* Today's Schedule */}

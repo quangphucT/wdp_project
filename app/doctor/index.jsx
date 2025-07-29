@@ -261,14 +261,17 @@ const DoctorDashboard = () => {
             </View>
           </TouchableOpacity>
           
-          {/* Reports Card */}
-          <TouchableOpacity className="bg-white rounded-3xl p-6 flex-1 ml-2 border border-indigo-100 shadow-lg">
+          {/* Credentials Card */}
+          <TouchableOpacity 
+            className="bg-white rounded-3xl p-6 flex-1 ml-2 border border-indigo-100 shadow-lg"
+            onPress={() => router.push("/doctor/credentials")}
+          >
             <View className="items-center">
               <View className="w-16 h-16 bg-indigo-500 rounded-2xl justify-center items-center mb-4">
-                <Text className="text-white text-xl">📈</Text>
+                <Text className="text-white text-xl">🎓</Text>
               </View>
-              <Text className="text-gray-800 text-base font-semibold mb-2">Phân tích</Text>
-              <Text className="text-gray-600 text-xs text-center">Xem thống kê</Text>
+              <Text className="text-gray-800 text-base font-semibold mb-2">Bằng cấp</Text>
+              <Text className="text-gray-600 text-xs text-center">Chuyên môn</Text>
             </View>
           </TouchableOpacity>
         </View>

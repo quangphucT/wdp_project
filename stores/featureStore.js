@@ -5,8 +5,8 @@ import { create } from 'zustand';
  * Store quản lý các tính năng của ứng dụng
  */
 const useFeatureStore = create((set, get) => ({
-  // State
-  features: [
+  // Các dịch vụ chính hiển thị trên home
+  mainFeatures: [
     {
       id: 'medicine',
       title: "Lịch uống thuốc",
@@ -24,101 +24,101 @@ const useFeatureStore = create((set, get) => ({
       route: '/user/record_patient',
     },
     {
+      id: 'appointments',
+      title: "Quản lí cuộc hẹn",
+      desc: "Xem & nhắc nhở",
+      icon: <MaterialCommunityIcons name="calendar-clock" size={24} color="#d81b60" />,
+      bgColor: "bg-pink-50",
+      route: '/user/user_appointment',
+    },
+    {
+      id: 'news',
+      title: "Tin tức",
+      desc: "Cập nhật mới",
+      icon: <MaterialCommunityIcons name="newspaper-variant-outline" size={24} color="#ff9800" />,
+      bgColor: "bg-orange-50",
+      route: '/blogs/blog',
+    }
+  ],
+
+  // Nhóm dịch vụ y tế
+  medicalServices: [
+    {
+      id: 'book_appointments',
+      title: "Đặt lịch cuộc hẹn",
+      desc: "Đặt lịch khám",
+      icon: "📅",
+      bgColor: "bg-red-50",
+      route: '/user/book_appointment',
+    },
+    {
+      id: 'facility_info',
+      title: "Thông tin cơ sở",
+      desc: "Giới thiệu phòng khám",
+      icon: "🏥",
+      bgColor: "bg-blue-50",
+      route: '/info/facilities',
+    },
+    {
       id: 'profile',
       title: "Cập nhật hồ sơ",
       desc: "Thông tin cá nhân",
       icon: <FontAwesome5 name="user-edit" size={24} color="#43a047" />,
       bgColor: "bg-green-50",
       route: '/user/profile_patient',
-    },
-    {
-      id: 'news',
-      title: "Tin tức",
-      desc: "Cập nhật mới",
-      icon: (
-        <MaterialCommunityIcons
-          name="newspaper-variant-outline"
-          size={24}
-          color="#ff9800"
-        />
-      ),
-      bgColor: "bg-orange-50",
-      route: '/blogs/blog',
-    },
-    // {
-    //   id: 'meeting',
-    //   title: "Meeting Record",
-    //   desc: "Tư vấn video cá nhân",
-    //   icon: <Entypo name="video" size={24} color="#00acc1" />,
-    //   bgColor: "bg-cyan-50",
-    //   route: null, // Chưa có màn hình cụ thể
-    // },
-    {
-      id: 'appointments',
-      title: "Quản lí cuộc hẹn",
-      desc: "Xem & nhắc nhở",
-      icon: (
-        <MaterialCommunityIcons
-          name="calendar-clock"
-          size={24}
-          color="#d81b60"
-        />
-      ),
-      bgColor: "bg-pink-50",
-      route: '/user/user_appointment',
-    },
-
-
-    {
-      id: 'book_appointments',
-      title: "Đặt lịch cuộc hẹn",
-    
-      icon: (
-        <MaterialCommunityIcons
-          name="calendar-clock"
-          size={24}
-          color="#a81b60"
-        />
-      ),
-      bgColor: "bg-pink-70",
-      route: '/user/book_appointment',
-    },
+    }
   ],
 
-  // Lấy danh sách tính năng
-  getFeatures: () => get().features,
+  // Nhóm hỗ trợ HIV
+  hivSupport: [
+    {
+      id: 'hiv_education',
+      title: "Tài liệu giáo dục HIV",
+      desc: "Kiến thức về HIV/AIDS",
+      icon: "📚",
+      bgColor: "bg-green-50",
+      route: '/education/hiv-guide',
+    },
+    {
+      id: 'stigma_reduction',
+      title: "Giảm kỳ thị HIV",
+      desc: "Thay đổi nhận thức",
+      icon: "🤝",
+      bgColor: "bg-purple-50",
+      route: '/education/stigma-reduction',
+    },
+    {
+      id: 'community_support',
+      title: "Hỗ trợ cộng đồng",
+      desc: "Chia sẻ & kết nối",
+      icon: "�",
+      bgColor: "bg-cyan-50",
+      route: '/education/community',
+    }
+  ],
+
+  // Lấy danh sách tính năng chính
+  getMainFeatures: () => get().mainFeatures,
+
+  // Lấy nhóm dịch vụ y tế
+  getMedicalServices: () => get().medicalServices,
+
+  // Lấy nhóm hỗ trợ HIV
+  getHivSupport: () => get().hivSupport,
+
+  // Lấy tất cả features (để tương thích với code cũ)
+  getFeatures: () => [...get().mainFeatures, ...get().medicalServices, ...get().hivSupport],
 
   // Lấy tính năng theo id
-  getFeatureById: (id) => get().features.find(feature => feature.id === id),
+  getFeatureById: (id) => {
+    const allFeatures = [...get().mainFeatures, ...get().medicalServices, ...get().hivSupport];
+    return allFeatures.find(feature => feature.id === id);
+  },
 
   // Lấy tính năng theo route
-  getFeatureByRoute: (route) => get().features.find(feature => feature.route === route),
-
-  // Thêm tính năng mới
-  addFeature: (feature) => {
-    if (!feature.id) {
-      feature.id = Date.now().toString();
-    }
-    set(state => ({
-      features: [...state.features, feature]
-    }));
-    return feature.id;
-  },
-
-  // Cập nhật tính năng
-  updateFeature: (id, updatedFeature) => {
-    set(state => ({
-      features: state.features.map(feature => 
-        feature.id === id ? { ...feature, ...updatedFeature } : feature
-      )
-    }));
-  },
-
-  // Xóa tính năng
-  removeFeature: (id) => {
-    set(state => ({
-      features: state.features.filter(feature => feature.id !== id)
-    }));
+  getFeatureByRoute: (route) => {
+    const allFeatures = [...get().mainFeatures, ...get().medicalServices, ...get().hivSupport];
+    return allFeatures.find(feature => feature.route === route);
   }
 }));
 

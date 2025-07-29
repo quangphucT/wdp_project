@@ -4,18 +4,18 @@ import { useRouter } from "expo-router";
 import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    Modal,
-    Platform,
-    RefreshControl,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Modal,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { getProfileUserApi } from "../../services/auth/getProfileUserApi";
 import { updateProfileUserApi } from "../../services/auth/updateProfileUserApi";
@@ -430,13 +430,13 @@ const DoctorProfile = () => {
           </Text>
         </View>
 
-        <View style={styles.infoItem}>
+        {/* <View style={styles.infoItem}>
           <View style={styles.infoLabel}>
             <Ionicons name="shield-outline" size={20} color="#666" />
             <Text style={styles.labelText}>Vai trò</Text>
           </View>
           <Text style={styles.infoValue}>{getRoleText(dataProfile.role)}</Text>
-        </View>
+        </View> */}
 
         <View style={styles.infoItem}>
           <View style={styles.infoLabel}>
