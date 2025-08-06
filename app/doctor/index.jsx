@@ -45,10 +45,7 @@ const DoctorDashboard = () => {
           const allResponse = await getAppointmentDoctor.getAppointmentDoctor(doctorId);
           const allAppointments = allResponse.data?.data?.data || [];
           
-          console.log('=== DASHBOARD DEBUG ===');
-          console.log('DoctorId used:', doctorId);
-          console.log('Total appointments found:', allAppointments.length);
-          console.log('All appointments:', allAppointments);
+        
           
           setTotalAppointments(allAppointments.length);
 

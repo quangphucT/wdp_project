@@ -70,13 +70,13 @@ const getStatusColor = (status) => {
 
  const getStatusText = (status) => {
   switch (status) {
-    case 'PENDING': return 'Đang chờ';
+    case 'PENDING': return 'Chờ';
     case 'CHECKIN': return 'Đang khám';
     case 'PAID': return 'Đã thanh toán';
     case 'PROCESS': return 'Đang xử lý';
     case 'CONFIRMED': return 'Đã xác nhận';
     case 'COMPLETED': return 'Hoàn thành';
-    case 'CANCELLED': return 'Đã hủy';
+    case 'CANCELLED': return 'Hủy';
     default: return 'Không xác định';
   }
 };
@@ -327,7 +327,7 @@ const getStatusColor = (status) => {
                   <Text className="text-gray-600 text-sm font-semibold">{formatDate(appointment.appointmentTime)}</Text>
                 </View>
                 <View className="flex-col space-y-2 ">
-                  <View className={`px-4 py-2 rounded-full border ${getStatusColor(appointment.status)} shadow-sm`}>
+                  <View className={`px-[39px] py-2 rounded-full border ${getStatusColor(appointment.status)} shadow-sm`}>
                     <Text className="text-xs font-bold">
                       {getStatusText(appointment.status)}
                     </Text>

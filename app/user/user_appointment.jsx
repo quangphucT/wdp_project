@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
+import { deleteAppointmentApi } from "../../services/appointment/deleteAppointmentApi";
 import { getAppointmentPatient } from "../../services/user/getAppointmentPatient";
 import useAuthStore from "../../stores/authStore";
 
@@ -24,6 +25,8 @@ const UserAppointment = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   const [error, setError] = useState(null);
+
+  const [showCancelledOnly, setShowCancelledOnly] = useState(false);
   
   const { user } = useAuthStore();
   const router = useRouter();
@@ -69,6 +72,22 @@ const UserAppointment = () => {
 
   const onRefresh = () => {
     fetchAppointments(true);
+  };
+
+  // Lọc dữ liệu cuộc hẹn dựa trên filter
+  const getFilteredAppointments = () => {
+    if (showCancelledOnly) {
+      return appointmentData.filter(item => item.status === 'CANCELLED');
+    }
+    return appointmentData.filter(item => item.status !== 'CANCELLED');
+  };
+
+  // Thống kê cuộc hẹn
+  const getAppointmentStats = () => {
+    const total = appointmentData.length;
+    const cancelled = appointmentData.filter(item => item.status === 'CANCELLED').length;
+    const active = total - cancelled;
+    return { total, cancelled, active };
   };
 
   const getStatusColor = (status) => {
@@ -139,6 +158,74 @@ const UserAppointment = () => {
       style: 'currency',
       currency: 'VND'
     }).format(price); // Bỏ * 1000 vì price từ API đã đúng
+  };
+
+  // Kiểm tra xem cuộc hẹn có thể xóa được không (trước 1 ngày)
+  const canCancelAppointment = (appointmentTime) => {
+    const now = new Date();
+    const appointmentDate = new Date(appointmentTime);
+    const timeDiff = appointmentDate.getTime() - now.getTime();
+    const daysDiff = timeDiff / (1000 * 3600 * 24);
+    
+    return daysDiff >= 1; // Cho phép hủy nếu còn ít nhất 1 ngày
+  };
+
+  // Xóa cuộc hẹn
+  const handleDeleteAppointment = async (appointment) => {
+    try {
+      if (!canCancelAppointment(appointment.appointmentTime)) {
+        Alert.alert(
+          'Không thể hủy cuộc hẹn',
+          'Bạn chỉ có thể hủy cuộc hẹn trước ít nhất 1 ngày. Vui lòng liên hệ trực tiếp với phòng khám để được hỗ trợ.',
+          [{ text: 'Đóng' }]
+        );
+        return;
+      }
+
+      Alert.alert(
+        'Xác nhận hủy cuộc hẹn',
+        `Bạn có chắc chắn muốn hủy cuộc hẹn với ${appointment.doctor?.user?.name || 'bác sĩ'} vào ${formatDateTime(appointment.appointmentTime).fullDateTime}?`,
+        [
+          { text: 'Không', style: 'cancel' },
+          {
+            text: 'Hủy cuộc hẹn',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                setLoading(true);
+                await deleteAppointmentApi(appointment.id);
+                
+                Alert.alert(
+                  'Thành công',
+                  'Cuộc hẹn đã được hủy thành công.',
+                  [{ text: 'OK' }]
+                );
+                
+                // Refresh danh sách cuộc hẹn
+                await fetchAppointments();
+              } catch (error) {
+                console.error('Error deleting appointment:', error);
+                
+                let errorMessage = 'Không thể hủy cuộc hẹn. Vui lòng thử lại.';
+                
+                if (error.response?.data?.message) {
+                  errorMessage = error.response.data.message;
+                } else if (error.message) {
+                  errorMessage = error.message;
+                }
+                
+                Alert.alert('Lỗi', errorMessage);
+              } finally {
+                setLoading(false);
+              }
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Error in handleDeleteAppointment:', error);
+      Alert.alert('Lỗi', 'Có lỗi xảy ra khi xử lý yêu cầu hủy cuộc hẹn.');
+    }
   };
 
 //   const handleJoinMeeting = async (meetingUrl) => {
@@ -288,18 +375,77 @@ const UserAppointment = () => {
         </View>
 
         {/* Action Buttons */}
-        {item.type === 'ONLINE' && (
-          <View className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
-            <View className="flex-row items-center mb-2">
-              <Ionicons name="warning" size={20} color="#F59E0B" />
-              <Text className="text-amber-700 font-semibold ml-2">Lưu ý quan trọng</Text>
+        <View className="space-y-3">
+          {/* Warning cho tư vấn trực tuyến */}
+          {item.type === 'ONLINE' && (
+            <View className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+              <View className="flex-row items-center mb-2">
+                <Ionicons name="warning" size={20} color="#F59E0B" />
+                <Text className="text-amber-700 font-semibold ml-2">Lưu ý quan trọng</Text>
+              </View>
+              <Text className="text-amber-700 text-sm leading-5">
+                Để tham gia cuộc hẹn tư vấn trực tuyến, bạn cần đăng nhập vào hệ thống web của chúng tôi. 
+                Vui lòng truy cập website và sử dụng tài khoản này để meeting với bác sĩ.
+              </Text>
             </View>
-            <Text className="text-amber-700 text-sm leading-5">
-              Để tham gia cuộc hẹn tư vấn trực tuyến, bạn cần đăng nhập vào hệ thống web của chúng tôi. 
-              Vui lòng truy cập website và sử dụng tài khoản này để meeting với bác sĩ.
-            </Text>
-          </View>
-        )}
+          )}
+
+          {/* Nút hủy cuộc hẹn - chỉ hiển thị nếu chưa hoàn thành và chưa bị hủy */}
+          {(item.status === 'PENDING' || item.status === 'CONFIRMED') && (
+            <View className="flex-row space-x-3">
+              {canCancelAppointment(item.appointmentTime) ? (
+                <TouchableOpacity 
+                  className="flex-1 bg-red-500 flex-row items-center justify-center py-3 px-4 rounded-lg"
+                  onPress={() => handleDeleteAppointment(item)}
+                >
+                  <Ionicons name="trash" size={20} color="white" />
+                  <Text className="text-white text-base font-semibold ml-2">Hủy cuộc hẹn</Text>
+                </TouchableOpacity>
+              ) : (
+                <View className="flex-1 bg-gray-300 flex-row items-center justify-center py-3 px-4 rounded-lg">
+                  <Ionicons name="lock-closed" size={20} color="#6B7280" />
+                  <Text className="text-gray-600 text-base font-semibold ml-2">Không thể hủy</Text>
+                </View>
+              )}
+              
+              {/* Thông tin thời gian hủy */}
+              <View className="flex-2 bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                <View className="flex-row items-center mb-1">
+                  <Ionicons name="information-circle" size={16} color="#3B82F6" />
+                  <Text className="text-blue-700 font-medium text-sm ml-1">Chính sách hủy</Text>
+                </View>
+                <Text className="text-blue-600 text-xs leading-4">
+                  {canCancelAppointment(item.appointmentTime) 
+                    ? 'Có thể hủy cuộc hẹn này' 
+                    : 'Chỉ được hủy trước 1 ngày'
+                  }
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {/* Hiển thị trạng thái đã hủy hoặc hoàn thành */}
+          {(item.status === 'CANCELLED' || item.status === 'COMPLETED') && (
+            <View className={`p-4 rounded-lg border ${
+              item.status === 'CANCELLED' 
+                ? 'bg-red-50 border-red-200' 
+                : 'bg-green-50 border-green-200'
+            }`}>
+              <View className="flex-row items-center">
+                <Ionicons 
+                  name={item.status === 'CANCELLED' ? "close-circle" : "checkmark-circle"} 
+                  size={20} 
+                  color={item.status === 'CANCELLED' ? "#EF4444" : "#10B981"} 
+                />
+                <Text className={`font-semibold ml-2 ${
+                  item.status === 'CANCELLED' ? 'text-red-700' : 'text-green-700'
+                }`}>
+                  {item.status === 'CANCELLED' ? 'Cuộc hẹn đã bị hủy' : 'Cuộc hẹn đã hoàn thành'}
+                </Text>
+              </View>
+            </View>
+          )}
+        </View>
         {/* {item.type === 'ONLINE' && item.patientMeetingUrl && item.status === 'CONFIRMED' && (
           <TouchableOpacity 
             className="bg-green-500 flex-row items-center justify-center py-3 px-4 rounded-lg"
@@ -315,10 +461,19 @@ const UserAppointment = () => {
 
   const renderEmptyState = () => (
     <View className="flex-1 justify-center items-center pt-24">
-      <Ionicons name="calendar-outline" size={64} color="#9E9E9E" />
-      <Text className="text-xl font-bold text-gray-800 mt-4 mb-2">Chưa có cuộc hẹn nào</Text>
+      <Ionicons 
+        name={showCancelledOnly ? "close-circle-outline" : "calendar-outline"} 
+        size={64} 
+        color="#9E9E9E" 
+      />
+      <Text className="text-xl font-bold text-gray-800 mt-4 mb-2">
+        {showCancelledOnly ? 'Chưa có cuộc hẹn nào bị hủy' : 'Chưa có cuộc hẹn nào'}
+      </Text>
       <Text className="text-base text-gray-600 text-center">
-        Các cuộc hẹn của bạn sẽ hiển thị ở đây
+        {showCancelledOnly 
+          ? 'Các cuộc hẹn đã hủy sẽ hiển thị ở đây'
+          : 'Các cuộc hẹn của bạn sẽ hiển thị ở đây'
+        }
       </Text>
     </View>
   );
@@ -365,13 +520,57 @@ const UserAppointment = () => {
                    <Text className="text-2xl font-bold text-gray-800">Cuộc hẹn của tôi </Text>
                  </View>
                </View>
+        
+        {/* Filter Buttons */}
+        <View className="flex-row space-x-3 mb-4">
+          <TouchableOpacity 
+            className={`flex-1 py-3 px-4 rounded-xl flex-row items-center justify-center ${
+              !showCancelledOnly ? 'bg-blue-600' : 'bg-gray-100'
+            }`}
+            onPress={() => setShowCancelledOnly(false)}
+          >
+            <Ionicons 
+              name="calendar" 
+              size={16} 
+              color={!showCancelledOnly ? "white" : "#6B7280"} 
+            />
+            <Text className={`ml-2 font-bold ${
+              !showCancelledOnly ? 'text-white' : 'text-gray-600'
+            }`}>
+              Đang hoạt động ({getAppointmentStats().active})
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            className={`flex-1 py-3 px-4 rounded-xl flex-row items-center justify-center ${
+              showCancelledOnly ? 'bg-red-600' : 'bg-gray-100'
+            }`}
+            onPress={() => setShowCancelledOnly(true)}
+          >
+            <Ionicons 
+              name="close-circle" 
+              size={16} 
+              color={showCancelledOnly ? "white" : "#6B7280"} 
+            />
+            <Text className={`ml-2 font-bold ${
+              showCancelledOnly ? 'text-white' : 'text-gray-600'
+            }`}>
+              Đã hủy ({getAppointmentStats().cancelled})
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         <Text className="text-sm text-gray-600">
-          {appointmentData.length} cuộc hẹn
+          {showCancelledOnly 
+            ? `${getAppointmentStats().cancelled} cuộc hẹn đã hủy`
+            : `${getAppointmentStats().active} cuộc hẹn đang hoạt động`
+          }
         </Text>
         
-        {/* Hiển thị thông tin cuộc hẹn sắp tới */}
-        {appointmentData.length > 0 && (() => {
-          const nextAppointment = appointmentData.find(apt => new Date(apt.appointmentTime) > new Date());
+        {/* Hiển thị thông tin cuộc hẹn sắp tới - chỉ khi không xem cuộc hẹn đã hủy */}
+        {!showCancelledOnly && appointmentData.length > 0 && (() => {
+          const activeAppointments = getFilteredAppointments();
+          const nextAppointment = activeAppointments.find(apt => new Date(apt.appointmentTime) > new Date());
           if (nextAppointment) {
             const { fullDateTime } = formatDateTime(nextAppointment.appointmentTime);
             return (
@@ -390,12 +589,12 @@ const UserAppointment = () => {
       </View>
 
       <FlatList
-        data={appointmentData}
+        data={getFilteredAppointments()}
         renderItem={renderAppointmentItem}
         keyExtractor={(item) => item.id.toString()}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ padding: 16 }}
-        ListEmptyComponent={renderEmptyState}
+        ListEmptyComponent={() => renderEmptyState()}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

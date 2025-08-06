@@ -216,10 +216,8 @@ const BookAppointment = () => {
       
       
       const response = await bookAppointmentApi(appointmentData);
-      console.log('API Response:', response);
       
       if (response?.data) {
-        console.log('Booking successful:', response.data);
         Alert.alert(
           'Thành công', 
           'Đặt lịch hẹn thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.',
@@ -472,13 +470,7 @@ const BookAppointment = () => {
     const currentMinutes = today.getMinutes();
     const currentTimeStr = `${currentHours.toString().padStart(2, '0')}:${currentMinutes.toString().padStart(2, '0')}`;
 
-    console.log('Current time check:', {
-      selectedDate: selectedDateStr,
-      todayStr,
-      isToday,
-      currentTime: currentTimeStr,
-      localTimezone: `GMT${today.getTimezoneOffset() / -60 >= 0 ? '+' : ''}${today.getTimezoneOffset() / -60}`
-    });
+  
 
     // Tạo available slots từ timeSlots cố định
     const availableSlots = [];
@@ -540,8 +532,6 @@ const BookAppointment = () => {
         }
       });
     });
-
-    console.log('Available slots after filtering:', availableSlots);
     setAvailableSlots(availableSlots);
   };
 
@@ -555,11 +545,7 @@ const BookAppointment = () => {
       const day = date.getDate().toString().padStart(2, '0');
       const dateStr = `${year}-${month}-${day}`;
       
-      console.log('Date selection:', {
-        selectedDate: date,
-        formattedDate: dateStr,
-        localTimezone: `GMT${date.getTimezoneOffset() / -60 >= 0 ? '+' : ''}${date.getTimezoneOffset() / -60}`
-      });
+    
       
       setSelectedDate(dateStr);
       
