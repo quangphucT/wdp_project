@@ -3,14 +3,18 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Modal,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { getProfileUserApi } from '../../services/auth/getProfileUserApi';
+import { updateProfileUserApi } from '../../services/auth/updateProfileUserApi';
 import { getAllDoctorApi } from '../../services/doctor/getInforDoctorApi';
 import useAuthStore from '../../stores/authStore';
 
@@ -19,13 +23,25 @@ const DoctorCredentialsScreen = () => {
   const { user } = useAuthStore();
   const [doctorInfo, setDoctorInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newCertificate, setNewCertificate] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     const fetchDoctorInfo = async () => {
       if (user?.id) {
         try {
           setIsLoading(true);
-          const response = await getAllDoctorApi(user.id);
+          // Gọi API profile để lấy doctorId
+          const profileResponse = await getProfileUserApi();
+          const profileData = profileResponse.data.data;
+          const doctorId = profileData.doctorId || profileData.doctor?.id;
+          
+          if (!doctorId) {
+            throw new Error('Không tìm thấy thông tin bác sĩ');
+          }
+          
+          const response = await getAllDoctorApi(doctorId);
           setDoctorInfo(response.data.data);
         } catch (error) {
           console.error('Error fetching doctor info:', error);
@@ -38,6 +54,43 @@ const DoctorCredentialsScreen = () => {
 
     fetchDoctorInfo();
   }, [user?.id]);
+
+  const handleAddCertificate = async () => {
+    if (!newCertificate.trim()) {
+      Alert.alert('Lỗi', 'Vui lòng nhập tên chứng chỉ');
+      return;
+    }
+
+    try {
+      setIsUpdating(true);
+      
+      // Tạo mảng certifications mới
+      const currentCertifications = doctorInfo?.certifications || [];
+      const updatedCertifications = [...currentCertifications, newCertificate.trim()];
+      
+      // Gọi API cập nhật
+      await updateProfileUserApi({
+        certifications: updatedCertifications
+      });
+      
+      // Cập nhật state local
+      setDoctorInfo(prev => ({
+        ...prev,
+        certifications: updatedCertifications
+      }));
+      
+      // Reset form
+      setNewCertificate('');
+      setShowAddModal(false);
+      
+      Alert.alert('Thành công', 'Đã thêm chứng chỉ mới');
+    } catch (error) {
+      console.error('Error adding certificate:', error);
+      Alert.alert('Lỗi', 'Không thể thêm chứng chỉ. Vui lòng thử lại.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -247,26 +300,54 @@ const DoctorCredentialsScreen = () => {
               <View style={{
                 flexDirection: 'row',
                 alignItems: 'center',
+                justifyContent: 'space-between',
                 marginBottom: 16,
               }}>
                 <View style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 24,
-                  backgroundColor: '#f59e0b',
-                  justifyContent: 'center',
+                  flexDirection: 'row',
                   alignItems: 'center',
-                  marginRight: 16,
                 }}>
-                  <Ionicons name="ribbon" size={24} color="white" />
+                  <View style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 24,
+                    backgroundColor: '#f59e0b',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginRight: 16,
+                  }}>
+                    <Ionicons name="ribbon" size={24} color="white" />
+                  </View>
+                  <Text style={{
+                    fontSize: 17,
+                    fontWeight: 'bold',
+                    color: '#1f2937',
+                  }}>
+                    Bằng cấp & Chứng chỉ
+                  </Text>
                 </View>
-                <Text style={{
-                  fontSize: 20,
-                  fontWeight: 'bold',
-                  color: '#1f2937',
-                }}>
-                  Bằng cấp & Chứng chỉ
-                </Text>
+                
+                <TouchableOpacity
+                  onPress={() => setShowAddModal(true)}
+                  style={{
+                    backgroundColor: '#10b981',
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    borderRadius: 8,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Ionicons name="add" size={20} color="white" />
+                  <Text style={{
+                    color: 'white',
+                    fontWeight: '600',
+                    marginLeft: 4,
+                    fontSize: 14,
+                  }}>
+                    Thêm
+                  </Text>
+                </TouchableOpacity>
               </View>
 
               {doctorInfo.certifications && doctorInfo.certifications.length > 0 ? (
@@ -411,6 +492,147 @@ const DoctorCredentialsScreen = () => {
           </View>
         )}
       </ScrollView>
+
+      {/* Add Certificate Modal */}
+      <Modal
+        visible={showAddModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowAddModal(false)}
+      >
+        <View style={{
+          flex: 1,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingHorizontal: 20,
+        }}>
+          <View style={{
+            backgroundColor: 'white',
+            borderRadius: 16,
+            padding: 24,
+            width: '100%',
+            maxWidth: 400,
+          }}>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 20,
+            }}>
+              <View style={{
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                backgroundColor: '#f59e0b',
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginRight: 12,
+              }}>
+                <Ionicons name="ribbon" size={20} color="white" />
+              </View>
+              <Text style={{
+                fontSize: 18,
+                fontWeight: 'bold',
+                color: '#1f2937',
+                flex: 1,
+              }}>
+                Thêm chứng chỉ mới
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowAddModal(false)}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: '#f3f4f6',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Ionicons name="close" size={20} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={{
+              fontSize: 14,
+              color: '#6b7280',
+              marginBottom: 12,
+            }}>
+              Nhập tên bằng cấp hoặc chứng chỉ
+            </Text>
+
+            <TextInput
+              value={newCertificate}
+              onChangeText={setNewCertificate}
+              placeholder="Ví dụ: Bằng Thạc sĩ Y khoa, Chứng chỉ Tim mạch..."
+              style={{
+                borderWidth: 1,
+                borderColor: '#d1d5db',
+                borderRadius: 8,
+                paddingHorizontal: 12,
+                paddingVertical: 12,
+                fontSize: 16,
+                marginBottom: 20,
+                backgroundColor: '#f9fafb',
+              }}
+              multiline={true}
+              numberOfLines={3}
+              textAlignVertical="top"
+            />
+
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'flex-end',
+              gap: 12,
+            }}>
+              <TouchableOpacity
+                onPress={() => {
+                  setNewCertificate('');
+                  setShowAddModal(false);
+                }}
+                style={{
+                  paddingHorizontal: 16,
+                  paddingVertical: 10,
+                  borderRadius: 8,
+                  backgroundColor: '#f3f4f6',
+                }}
+              >
+                <Text style={{
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: '#6b7280',
+                }}>
+                  Hủy
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleAddCertificate}
+                disabled={isUpdating || !newCertificate.trim()}
+                style={{
+                  paddingHorizontal: 16,
+                  paddingVertical: 10,
+                  borderRadius: 8,
+                  backgroundColor: (!newCertificate.trim() || isUpdating) ? '#d1d5db' : '#10b981',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                }}
+              >
+                {isUpdating && (
+                  <ActivityIndicator size="small" color="white" style={{ marginRight: 8 }} />
+                )}
+                <Text style={{
+                  fontSize: 14,
+                  fontWeight: '600',
+                  color: 'white',
+                }}>
+                  {isUpdating ? 'Đang lưu...' : 'Thêm chứng chỉ'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };

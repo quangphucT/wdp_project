@@ -5,6 +5,7 @@ import { Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } fro
 
 import logoImage from '../../assets/images/logo.png';
 import { registerApi } from '../../services/auth/registerApi';
+import { sentOTPApi } from '../../services/auth/sentOTPApi';
 
 const RegisterScreen = () => {
   const router = useRouter();
@@ -14,16 +15,52 @@ const RegisterScreen = () => {
     name: '',
     password: '',
     confirmPassword: '',
-    phoneNumber: ''
+    phoneNumber: '',
+    code: ''
   });
 
-  const handleRegister = async () => {
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  const handleSendOTP = async () => {
+    if (!form.email) {
+      Alert.alert("Lỗi", "Vui lòng nhập email trước khi verify.");
+      return;
+    }
+
     try {
+      setIsVerifying(true);
+      await sentOTPApi(form.email);
+      Alert.alert("Thành công", "Mã OTP đã được gửi đến email của bạn.");
+      setIsEmailVerified(true);
+    } catch (error) {
+      Alert.alert("Lỗi", "Không thể gửi mã OTP. Vui lòng thử lại.");
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleRegister = async () => {
+    if (!isEmailVerified) {
+      Alert.alert("Lỗi", "Vui lòng verify email trước khi đăng ký.");
+      return;
+    }
+
+    if (!form.code) {
+      Alert.alert("Lỗi", "Vui lòng nhập mã OTP.");
+      return;
+    }
+
+    try {
+      setIsRegistering(true);
       await registerApi(form);
       Alert.alert("Thành công", "Đăng ký thành công! Vui lòng đăng nhập.");
       router.push('/auth/login');
     } catch (error) {
       Alert.alert("Lỗi đăng ký", error.message);
+    } finally {
+      setIsRegistering(false);
     }
   };
 
@@ -51,16 +88,50 @@ const RegisterScreen = () => {
             {/* Email Input */}
             <View className="mb-4">
               <Text className="text-gray-700 text-sm font-medium mb-2">Địa chỉ email</Text>
-              <TextInput
-                className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-gray-900 text-sm focus:border-blue-500 focus:bg-white"
-                placeholder="Nhập địa chỉ email"
-                placeholderTextColor="#9CA3AF"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                value={form.email}
-                onChangeText={(text) => setForm({ ...form, email: text })}
-              />
+              <View className="flex-row">
+                <TextInput
+                  className="flex-1 h-12 bg-gray-50 border border-gray-200 rounded-l-xl px-4 text-gray-900 text-sm focus:border-blue-500 focus:bg-white"
+                  placeholder="Nhập địa chỉ email"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  value={form.email}
+                  onChangeText={(text) => setForm({ ...form, email: text })}
+                  editable={!isEmailVerified}
+                />
+                <TouchableOpacity
+                  className={`px-4 h-12 rounded-r-xl justify-center items-center ${
+                    isEmailVerified 
+                      ? 'bg-green-500' 
+                      : isVerifying 
+                        ? 'bg-gray-400' 
+                        : 'bg-blue-600'
+                  }`}
+                  onPress={handleSendOTP}
+                  disabled={isVerifying || isEmailVerified}
+                >
+                  <Text className="text-white font-medium text-sm">
+                    {isEmailVerified ? '✓ Verified' : isVerifying ? 'Sending...' : 'Verify'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
+
+            {/* OTP Code Input - Chỉ hiển thị sau khi gửi OTP */}
+            {isEmailVerified && (
+              <View className="mb-4">
+                <Text className="text-gray-700 text-sm font-medium mb-2">Mã OTP</Text>
+                <TextInput
+                  className="w-full h-12 bg-gray-50 border border-gray-200 rounded-xl px-4 text-gray-900 text-sm focus:border-blue-500 focus:bg-white"
+                  placeholder="Nhập mã OTP từ email"
+                  placeholderTextColor="#9CA3AF"
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  value={form.code}
+                  onChangeText={(text) => setForm({ ...form, code: text })}
+                />
+              </View>
+            )}
 
             {/* Name Input */}
             <View className="mb-4">
@@ -115,8 +186,13 @@ const RegisterScreen = () => {
 
             {/* Register Button */}
             <TouchableOpacity
-              className="w-full h-12 bg-blue-600 rounded-xl justify-center items-center shadow-lg"
+              className={`w-full h-12 rounded-xl justify-center items-center shadow-lg ${
+                isRegistering || !isEmailVerified || !form.code 
+                  ? 'bg-gray-400' 
+                  : 'bg-blue-600'
+              }`}
               onPress={handleRegister}
+              disabled={isRegistering || !isEmailVerified || !form.code}
               style={{
                 shadowColor: '#1e40af',
                 shadowOffset: { width: 0, height: 4 },
@@ -125,7 +201,9 @@ const RegisterScreen = () => {
                 elevation: 8,
               }}
             >
-              <Text className="text-white font-semibold text-base">Đăng ký tài khoản</Text>
+              <Text className="text-white font-semibold text-base">
+                {isRegistering ? 'Đang đăng ký...' : 'Đăng ký tài khoản'}
+              </Text>
             </TouchableOpacity>
           </View>
 

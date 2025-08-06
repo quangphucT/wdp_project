@@ -288,6 +288,18 @@ const UserAppointment = () => {
         </View>
 
         {/* Action Buttons */}
+        {item.type === 'ONLINE' && (
+          <View className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+            <View className="flex-row items-center mb-2">
+              <Ionicons name="warning" size={20} color="#F59E0B" />
+              <Text className="text-amber-700 font-semibold ml-2">Lưu ý quan trọng</Text>
+            </View>
+            <Text className="text-amber-700 text-sm leading-5">
+              Để tham gia cuộc hẹn tư vấn trực tuyến, bạn cần đăng nhập vào hệ thống web của chúng tôi. 
+              Vui lòng truy cập website và sử dụng tài khoản này để meeting với bác sĩ.
+            </Text>
+          </View>
+        )}
         {/* {item.type === 'ONLINE' && item.patientMeetingUrl && item.status === 'CONFIRMED' && (
           <TouchableOpacity 
             className="bg-green-500 flex-row items-center justify-center py-3 px-4 rounded-lg"

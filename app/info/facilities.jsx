@@ -17,10 +17,10 @@ const FacilitiesScreen = () => {
     {
       id: 1,
       name: "Phòng khám HIV Care Hub - Cơ sở chính",
-      address: "123 Đường Nguyễn Văn Cừ, Quận 1, TP.HCM",
+      address: "FPT University HCMC, 7 Đ. D1, Long Thạnh Mỹ, Thủ Đức, Hồ Chí Minh 700000, Vietnam",
       phone: "028-3822-5555",
       email: "info@hivcarehub.vn",
-      workingHours: "Thứ 2 - Thứ 6: 8:00 - 17:00\nThứ 7: 8:00 - 12:00",
+      workingHours: "Thứ 2 - Thứ 7: 7:00 - 17:00",
       services: [
         "Tư vấn và xét nghiệm HIV",
         "Điều trị ARV",
@@ -40,28 +40,28 @@ const FacilitiesScreen = () => {
         "Hệ thống bảo mật thông tin bệnh nhân tuyệt đối"
       ]
     },
-    {
-      id: 2,
-      name: "HIV Care Hub - Chi nhánh Quận 3",
-      address: "456 Đường Võ Văn Tần, Quận 3, TP.HCM",
-      phone: "028-3933-7777",
-      email: "q3@hivcarehub.vn",
-      workingHours: "Thứ 2 - Thứ 6: 8:00 - 17:00",
-      services: [
-        "Tư vấn và xét nghiệm HIV",
-        "Điều trị ARV",
-        "Chăm sóc sức khỏe tổng quát"
-      ],
-      doctors: [
-        { name: "BS.CKII Phạm Thị Dung", specialty: "Nhiễm khuẩn" },
-        { name: "BS Hoàng Văn Em", specialty: "Nội khoa" }
-      ],
-      facilities_detail: [
-        "Cơ sở mới với không gian hiện đại",
-        "Phòng khám được thiết kế thân thiện",
-        "Khu vực chờ thoải mái và riêng tư"
-      ]
-    }
+    // {
+    //   id: 2,
+    //   name: "HIV Care Hub - Chi nhánh Quận 3",
+    //   address: "456 Đường Võ Văn Tần, Quận 3, TP.HCM",
+    //   phone: "028-3933-7777",
+    //   email: "q3@hivcarehub.vn",
+    //   workingHours: "Thứ 2 - Thứ 6: 8:00 - 17:00",
+    //   services: [
+    //     "Tư vấn và xét nghiệm HIV",
+    //     "Điều trị ARV",
+    //     "Chăm sóc sức khỏe tổng quát"
+    //   ],
+    //   doctors: [
+    //     { name: "BS.CKII Phạm Thị Dung", specialty: "Nhiễm khuẩn" },
+    //     { name: "BS Hoàng Văn Em", specialty: "Nội khoa" }
+    //   ],
+    //   facilities_detail: [
+    //     "Cơ sở mới với không gian hiện đại",
+    //     "Phòng khám được thiết kế thân thiện",
+    //     "Khu vực chờ thoải mái và riêng tư"
+    //   ]
+    // }
   ];
 
   const handleCall = (phone) => {

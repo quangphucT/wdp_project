@@ -242,28 +242,91 @@ const BookAppointment = () => {
         );
       }
     } catch (error) {
-     
-      
       let errorMessage = 'Không thể đặt lịch hẹn. Vui lòng thử lại.';
+      let errorTitle = 'Lỗi';
       
-      // Xử lý error message từ API
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-        console.error('API Error Message:', error.response.data.message);
-      } else if (error.response?.data?.error) {
-        errorMessage = error.response.data.error;
-        console.error('API Error:', error.response.data.error);
+      // Xử lý error message từ API với cấu trúc lồng nhau
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        
+        // Trường hợp message là object (nested structure)
+        if (errorData.message && typeof errorData.message === 'object') {
+          if (errorData.message.message) {
+            errorMessage = errorData.message.message;
+            
+            // Xử lý một số message phổ biến để hiển thị thân thiện hơn
+            switch (errorData.message.message) {
+              case 'No available doctor for this slot':
+                errorMessage = 'Không có bác sĩ nào có lịch trống trong khung giờ này. Vui lòng chọn thời gian khác hoặc bác sĩ khác.';
+                errorTitle = 'Khung giờ đã hết chỗ';
+                break;
+              case 'Doctor is not available':
+                errorMessage = 'Bác sĩ không có lịch làm việc trong ngày này. Vui lòng chọn bác sĩ khác hoặc ngày khác.';
+                errorTitle = 'Bác sĩ không có lịch';
+                break;
+              case 'Appointment time is in the past':
+                errorMessage = 'Không thể đặt lịch hẹn trong quá khứ. Vui lòng chọn thời gian trong tương lai.';
+                errorTitle = 'Thời gian không hợp lệ';
+                break;
+              case 'User already has an appointment at this time':
+                errorMessage = 'Bạn đã có lịch hẹn trong khung giờ này. Vui lòng chọn thời gian khác.';
+                errorTitle = 'Trung lịch hẹn';
+                break;
+              case 'Service is not available':
+                errorMessage = 'Dịch vụ không khả dụng trong thời gian này. Vui lòng chọn dịch vụ khác.';
+                errorTitle = 'Dịch vụ không khả dụng';
+                break;
+              default:
+                // Giữ nguyên message từ API nếu không có translation
+                break;
+            }
+          }
+        }
+        // Trường hợp message là string
+        else if (errorData.message && typeof errorData.message === 'string') {
+          errorMessage = errorData.message;
+        }
+        // Trường hợp chỉ có error field
+        else if (errorData.error) {
+          errorMessage = errorData.error;
+        }
       } else if (error.message) {
         errorMessage = error.message;
-        console.error('Network Error:', error.message);
       }
       
-      // Log full error details for debugging
-      if (error.response?.data) {
-        console.error('Full API error response:', JSON.stringify(error.response.data, null, 2));
-      }
+      // Đặt loading về false trước khi hiển thị Alert
+      setLoading(false);
       
-      Alert.alert('Lỗi', errorMessage);
+      // Sử dụng setTimeout để đảm bảo Alert hiển thị sau khi loading đã tắt
+      setTimeout(() => {
+        Alert.alert(
+          errorTitle, 
+          errorMessage, 
+          [
+            {
+              text: 'Đóng',
+              style: 'cancel'
+            },
+            {
+              text: 'Thử lại',
+              onPress: () => {
+                // Nếu lỗi liên quan đến slot, reset time slot để user chọn lại
+                if (errorMessage.includes('khung giờ') || errorMessage.includes('thời gian')) {
+                  setSelectedTimeSlot(null);
+                  // Reload available slots nếu cần
+                  if (selectedDate && selectedDoctor && serviceDetails?.type !== 'CONSULT') {
+                    loadDoctorScheduleAndSlots(selectedDoctor.id);
+                  } else if (selectedDate && serviceDetails?.type === 'CONSULT') {
+                    generateConsultationSlotsWithServiceDetailsAndDate(serviceDetails, selectedDate);
+                  }
+                }
+              }
+            }
+          ]
+        );
+      }, 100);
+      
+      return; // Early return để tránh chạy finally block
     } finally {
       setLoading(false);
     }

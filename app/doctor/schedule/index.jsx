@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { getProfileUserApi } from "../../../services/auth/getProfileUserApi";
 import getScheduleDoctorAll from "../../../services/doctor/getScheduleDoctor";
 import useAuthStore from "../../../stores/authStore";
 
@@ -25,12 +26,47 @@ const WeeklySchedule = () => {
     
     try {
       setIsLoading(true);
-      const response = await getScheduleDoctorAll.getScheduleDoctorAll(user.id);
-      const scheduleDataFromAPI = response.data.data || [];
+      // Gọi API profile để lấy doctorId (giống như appointment và dashboard)
+      const profileResponse = await getProfileUserApi();
+      const profileData = profileResponse.data.data;
+      const doctorId = profileData.doctorId || profileData.doctor?.id;
       
-      console.log('Raw API Response:', response.data);
-      console.log('Schedule Data Array:', scheduleDataFromAPI);
-      console.log('Number of schedules:', scheduleDataFromAPI.length);
+      if (!doctorId) {
+        throw new Error('Không tìm thấy thông tin bác sĩ');
+      }
+      
+      console.log('=== SCHEDULE DEBUG ===');
+      console.log('User ID:', user.id);
+      console.log('DoctorId from profile:', doctorId);
+      console.log('Profile data:', profileData);
+      
+      // Thử cả 2 cách: doctorId và user.id
+      let response;
+      let scheduleDataFromAPI = [];
+      
+      try {
+        // Thử với doctorId trước
+        console.log('Trying with doctorId:', doctorId);
+        response = await getScheduleDoctorAll.getScheduleDoctorAll(doctorId);
+        
+        // Fix: Dữ liệu nằm ở response.data (không có nested .data.data)
+        scheduleDataFromAPI = response.data.data || response.data || [];
+        console.log('Raw response:', response.data);
+        console.log('Success with doctorId. Found schedules:', scheduleDataFromAPI.length);
+      } catch (doctorIdError) {
+        console.log('Failed with doctorId, trying with user.id:', user.id);
+        try {
+          // Nếu doctorId fail, thử với user.id
+          response = await getScheduleDoctorAll.getScheduleDoctorAll(user.id);
+          scheduleDataFromAPI = response.data.data || response.data || [];
+          console.log('Success with user.id. Found schedules:', scheduleDataFromAPI.length);
+        } catch (userIdError) {
+          console.error('Both attempts failed:', { doctorIdError, userIdError });
+          throw new Error('Không thể tải lịch làm việc với cả doctorId và user.id');
+        }
+      }
+      
+      console.log('Final schedule data:', scheduleDataFromAPI);
       
       // Log each schedule item
       scheduleDataFromAPI.forEach((schedule, index) => {
@@ -59,25 +95,28 @@ const WeeklySchedule = () => {
   // Process API data to fit the week view
   const getWeekData = (weekOffset) => {
     const today = new Date();
-    const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay() + 1 + (weekOffset * 7)));
+    // Fix: Không modify object today, tạo copy mới
+    const startOfWeek = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() + 1 + (weekOffset * 7));
     
     const days = [];
     for (let i = 0; i < 7; i++) {
-      const date = new Date(startOfWeek);
-      date.setDate(startOfWeek.getDate() + i);
+      const date = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + i);
       
-      // Convert date to YYYY-MM-DD format for comparison
-      const targetDateStr = date.toISOString().split('T')[0];
+      // Convert date to YYYY-MM-DD format for comparison - fix timezone issue
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const targetDateStr = `${year}-${month}-${day}`;
       
       // Find schedule data for this date
       const daySchedules = scheduleData.filter(schedule => {
-        // Convert API date to YYYY-MM-DD format for accurate comparison
-        const scheduleDate = new Date(schedule.date);
-        const scheduleDateStr = scheduleDate.toISOString().split('T')[0];
+        // API trả về date dạng "2025-08-05T14:58:50.355Z"
+        // Cần parse chỉ phần date, không dùng time để tránh timezone issues
+        const apiDate = schedule.date.split('T')[0]; // Lấy "2025-08-05"
         
-        console.log(`Comparing: ${targetDateStr} vs ${scheduleDateStr} for schedule ID ${schedule.id}`);
+        console.log(`Comparing: ${targetDateStr} vs ${apiDate} for schedule ID ${schedule.id} (doctorId: ${schedule.doctorId})`);
         
-        return scheduleDateStr === targetDateStr;
+        return apiDate === targetDateStr;
       });
       
       console.log(`Date ${targetDateStr}: Found ${daySchedules.length} schedules`, daySchedules);

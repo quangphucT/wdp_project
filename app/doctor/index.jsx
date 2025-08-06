@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { getProfileUserApi } from "../../services/auth/getProfileUserApi";
 import getAppointmentDoctor from "../../services/doctor/getAppointmentDoctor";
 import useAuthStore from "../../stores/authStore";
 
@@ -31,14 +32,29 @@ const DoctorDashboard = () => {
       if (user?.id) {
         setIsLoadingStats(true);
         try {
-          // Lấy tất cả cuộc hẹn
-          const allResponse = await getAppointmentDoctor.getAppointmentDoctor(user.id);
+          // Gọi API profile để lấy doctorId
+          const profileResponse = await getProfileUserApi();
+          const profileData = profileResponse.data.data;
+          const doctorId = profileData.doctorId || profileData.doctor?.id;
+          
+          if (!doctorId) {
+            throw new Error('Không tìm thấy thông tin bác sĩ');
+          }
+          
+          // Lấy tất cả cuộc hẹn với doctorId
+          const allResponse = await getAppointmentDoctor.getAppointmentDoctor(doctorId);
           const allAppointments = allResponse.data?.data?.data || [];
+          
+          console.log('=== DASHBOARD DEBUG ===');
+          console.log('DoctorId used:', doctorId);
+          console.log('Total appointments found:', allAppointments.length);
+          console.log('All appointments:', allAppointments);
+          
           setTotalAppointments(allAppointments.length);
 
           // Lấy cuộc hẹn hôm nay
           const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-          const todayResponse = await getAppointmentDoctor.getAppointmentDoctor(user.id, {
+          const todayResponse = await getAppointmentDoctor.getAppointmentDoctor(doctorId, {
             dateFrom: today,
             dateTo: today
           });

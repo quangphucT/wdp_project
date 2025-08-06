@@ -1,16 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Dimensions,
-    FlatList,
-    KeyboardAvoidingView,
-    Platform,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Dimensions,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import GeminiService from '../configs/geminiConfig'; // Giả sử bạn đã tạo service này để gọi API AI
 
@@ -150,10 +150,10 @@ const ChatBot = () => {
   };
 
   const quickQuestions = [
-    'Triệu chứng cảm cúm thường gặp?',
-    'Cách phòng ngừa bệnh tim mạch?',
-    'Dinh dưỡng cho người bệnh tiểu đường?',
-    'Cách giảm stress hiệu quả?'
+    'HIV/AIDS có triệu chứng gì?',
+    'Cách phòng ngừa HIV hiệu quả?',
+    'Chế độ ăn cho người nhiễm HIV?',
+    'Thuốc ARV là gì và tác dụng?'
   ];
 
   const sendQuickQuestion = (question) => {

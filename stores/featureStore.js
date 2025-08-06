@@ -80,6 +80,14 @@ const useFeatureStore = create((set, get) => ({
       route: '/education/hiv-guide',
     },
     {
+      id: 'hiv_quiz',
+      title: "Quiz kiến thức HIV",
+      desc: "Kiểm tra hiểu biết về HIV",
+      icon: "🧠",
+      bgColor: "bg-blue-50",
+      route: '/education/hiv-quiz',
+    },
+    {
       id: 'stigma_reduction',
       title: "Giảm kỳ thị HIV",
       desc: "Thay đổi nhận thức",

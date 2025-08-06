@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { getProfileUserApi } from "../../../services/auth/getProfileUserApi";
 import getAppointmentDoctor from "../../../services/doctor/getAppointmentDoctor";
 import useAuthStore from "../../../stores/authStore";
 
@@ -29,10 +30,18 @@ const DailyAppointments = () => {
     }
     try {
       setIsLoading(true);
-      // Sử dụng doctor ID thay vì user ID nếu có
-      const doctorId = user.doctor?.id || user.id;
+      // Gọi API profile để lấy doctorId (giống như dashboard)
+      const profileResponse = await getProfileUserApi();
+      const profileData = profileResponse.data.data;
+      const doctorId = profileData.doctorId || profileData.doctor?.id;
+      
+      if (!doctorId) {
+        throw new Error('Không tìm thấy thông tin bác sĩ');
+      }
+      
       const response = await getAppointmentDoctor.getAppointmentDoctor(doctorId, filterParams);
       const apiAppointments = response?.data?.data?.data || [];
+      
       setAppointments(apiAppointments);
     } catch (error) {
       Alert.alert("Lỗi", `Không thể tải dữ liệu cuộc hẹn: ${error.response?.data?.message || error.message}`);
@@ -137,8 +146,11 @@ const getStatusColor = (status) => {
               <View className="flex-row flex-wrap mb-4 gap-2">
                 <TouchableOpacity 
                   onPress={() => {
-                    setDateFrom(getTodayString());
-                    setDateTo(getTodayString());
+                    const params = {
+                      dateFrom: getTodayString(),
+                      dateTo: getTodayString()
+                    };
+                    fetchAppointments(params);
                   }}
                   className="bg-white/40 px-4 py-3 rounded-xl shadow-sm"
                 >
@@ -336,7 +348,7 @@ const getStatusColor = (status) => {
                     📧 {appointment.user.email}
                   </Text>
                   <Text className="text-gray-600 text-sm">
-                    📞 {appointment.user.phone_number || 'Chưa có số điện thoại'}
+                    📞 {appointment.user.phoneNumber || 'Chưa có số điện thoại'}
                   </Text>
                 </View>
               </View>
